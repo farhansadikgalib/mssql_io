@@ -176,7 +176,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s)
 		return NULL;
 	}
 	ev = tds_new0(LOGIN_EVENT, 1);
-	if (!ev || TDS_FAILED(tds_iconv_open(tds->conn, "UTF-8", 0))) {
+	if (!ev || TDS_FAILED(tds_iconv_open(tds->request, "UTF-8", 0))) {
 		free(ev);
 		tds_free_socket(tds);
 		CLOSESOCKET(fd);
@@ -276,8 +276,8 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 	tdsdump_log(TDS_DBG_NETWORK, "got packet type %d\n", tds->in_flag);
 	if (tds->in_flag == TDS71_PRELOGIN) {
-		if (!tds->conn->tds_version)
-			tds->conn->tds_version = 0x701;
+		if (!tds->request->tds_version)
+			tds->request->tds_version = 0x701;
 		tds->out_flag = TDS_REPLY;
 		// TODO proper one !!
 		// TODO detect TDS version here ??
@@ -303,12 +303,12 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 	puser->login = login = tds_alloc_login(1);
 	if (tds->in_flag == TDS_LOGIN) {
-		if (!tds->conn->tds_version)
-			tds->conn->tds_version = 0x500;
+		if (!tds->request->tds_version)
+			tds->request->tds_version = 0x500;
 		tds_read_login(tds, login);
 	} else if (tds->in_flag == TDS7_LOGIN) {
-		if (!tds->conn->tds_version)
-			tds->conn->tds_version = 0x700;
+		if (!tds->request->tds_version)
+			tds->request->tds_version = 0x700;
 		if (!tds7_read_login(tds, login))
 			return false;
 	} else {
@@ -339,21 +339,21 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 	TDSSOCKET *tds = puser->sock.tds, *mtds = puser->assigned_member->sock.tds;
 	TDSLOGIN *login = puser->login;
 	const char *database;
-	const char *server = mtds->conn->server ? mtds->conn->server : "JDBC";
+	const char *server = mtds->request->server ? mtds->request->server : "JDBC";
 	bool dbname_mismatch, odbc_mismatch;
 
 	pool->user_logins++;
 
 	/* copy a bit of information, resize socket with block */
-	tds->conn->tds_version = mtds->conn->tds_version;
-	tds->conn->product_version = mtds->conn->product_version;
-	memcpy(tds->conn->collation, mtds->conn->collation, sizeof(tds->conn->collation));
-	tds->conn->tds71rev1 = mtds->conn->tds71rev1;
-	free(tds->conn->product_name);
-	tds->conn->product_name = strdup(mtds->conn->product_name);
-	tds_realloc_socket(tds, mtds->conn->env.block_size);
-	tds->conn->env.block_size = mtds->conn->env.block_size;
-	tds->conn->client_spid = mtds->conn->spid;
+	tds->request->tds_version = mtds->request->tds_version;
+	tds->request->product_version = mtds->request->product_version;
+	memcpy(tds->request->collation, mtds->request->collation, sizeof(tds->request->collation));
+	tds->request->tds71rev1 = mtds->request->tds71rev1;
+	free(tds->request->product_name);
+	tds->request->product_name = strdup(mtds->request->product_name);
+	tds_realloc_socket(tds, mtds->request->env.block_size);
+	tds->request->env.block_size = mtds->request->env.block_size;
+	tds->request->client_spid = mtds->request->spid;
 
 	/* if database is different use USE statement */
 	database = pool->database;
@@ -383,7 +383,7 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 		if (dbname_mismatch)
 			database = tds_dstr_cstr(&login->database);
 		else
-			database = mtds->conn->env.database;
+			database = mtds->request->env.database;
 	}
 
 	// 7.0
@@ -416,17 +416,17 @@ pool_user_send_login_ack(TDS_POOL * pool, TDS_POOL_USER * puser)
 		tds_send_msg(tds, 5703, 1, 0, "Changed language setting to 'us_english'.", server, NULL, 1);
 	}
 
-	if (IS_TDS71_PLUS(tds->conn)) {
+	if (IS_TDS71_PLUS(tds->request)) {
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		tds_put_smallint(tds, 8);
 		tds_put_byte(tds, TDS_ENV_SQLCOLLATION);
 		tds_put_byte(tds, 5);
-		tds_put_n(tds, tds->conn->collation, 5);
+		tds_put_n(tds, tds->request->collation, 5);
 		tds_put_byte(tds, 0);
 	}
 
-	tds_send_login_ack(tds, mtds->conn->product_name);
-	sprintf(block, "%d", tds->conn->env.block_size);
+	tds_send_login_ack(tds, mtds->request->product_name);
+	sprintf(block, "%d", tds->request->env.block_size);
 	tds_env_change(tds, TDS_ENV_PACKSIZE, block, block);
 	/* tds_send_capabilities_token(tds); */
 	tds_send_done_token(tds, 0, 0);

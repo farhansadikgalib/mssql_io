@@ -14,7 +14,7 @@ A Flutter plugin for connecting to Microsoft SQL Server. Supports Android, iOS, 
 
 ```yaml
 dependencies:
-  mssql_io: ^0.0.1
+  mssql_io: ^0.0.2
 ```
 
 ```bash
@@ -60,8 +60,8 @@ vcpkg install freetds:x64-windows
 import 'package:mssql_io/mssql_io.dart';
 
 // Connect
-final conn = MssqlConnection.getInstance();
-await conn.connect(
+final request = MssqlConnection.getInstance();
+await request.connect(
   host: '192.168.1.100',
   databaseName: 'MyDB',
   username: 'sa',
@@ -69,13 +69,13 @@ await conn.connect(
 );
 
 // Query
-final result = await conn.getData('SELECT * FROM Users');
+final result = await request.getData('SELECT * FROM Users');
 for (final row in result.rows) {
   print('User: ${row['Name']}');
 }
 
 // Disconnect
-await conn.disconnect();
+await request.disconnect();
 ```
 
 ## Common Examples
@@ -83,7 +83,7 @@ await conn.disconnect();
 ### Parameterized Queries (Prevents SQL Injection)
 
 ```dart
-final result = await conn.getDataWithParams(
+final result = await request.getDataWithParams(
   'SELECT * FROM Users WHERE Age > @age',
   [SqlParameter(name: 'age', value: 18)],
 );
@@ -92,7 +92,7 @@ final result = await conn.getDataWithParams(
 ### Insert/Update/Delete
 
 ```dart
-final rows = await conn.writeDataWithParams(
+final rows = await request.writeDataWithParams(
   'INSERT INTO Users (Name, Email) VALUES (@name, @email)',
   [
     SqlParameter(name: 'name', value: 'Alice'),
@@ -105,13 +105,13 @@ print('Inserted $rows rows');
 ### Transactions
 
 ```dart
-await conn.beginTransaction();
+await request.beginTransaction();
 try {
-  await conn.writeData('INSERT INTO Orders VALUES (1, 99.99)');
-  await conn.writeData('UPDATE Inventory SET Stock = Stock - 1');
-  await conn.commit();
+  await request.writeData('INSERT INTO Orders VALUES (1, 99.99)');
+  await request.writeData('UPDATE Inventory SET Stock = Stock - 1');
+  await request.commit();
 } catch (e) {
-  await conn.rollback();
+  await request.rollback();
 }
 ```
 
@@ -119,7 +119,7 @@ try {
 
 ```dart
 final rows = List.generate(1000, (i) => {'Name': 'User$i', 'Age': 20 + i});
-await conn.bulkInsert('Users', rows, batchSize: 500);
+await request.bulkInsert('Users', rows, batchSize: 500);
 ```
 
 ## API
@@ -149,13 +149,13 @@ QueryResult {
 
 ```dart
 // Good - Safe
-await conn.getDataWithParams(
+await request.getDataWithParams(
   'SELECT * FROM Users WHERE Name = @name',
   [SqlParameter(name: 'name', value: userInput)],
 );
 
 // Bad - SQL Injection Risk!
-await conn.getData("SELECT * FROM Users WHERE Name = '$userInput'");
+await request.getData("SELECT * FROM Users WHERE Name = '$userInput'");
 ```
 
 ## Troubleshooting

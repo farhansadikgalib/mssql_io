@@ -107,13 +107,13 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_addrinfo_s
 &#160;</td><td class="memItemRight" valign="bottom"><b>TDS_COMPILE_CHECK</b> (additional, TDS_ADDITIONAL_SPACE !=0)</td></tr>
 <tr class="separator:gac6388b4451a68f9a7abcfb70bc1f30d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf48e52482db1642114e721e71850fa27"><td class="memItemLeft" align="right" valign="top"><a id="gaf48e52482db1642114e721e71850fa27"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_close</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_close</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="separator:gaf48e52482db1642114e721e71850fa27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga36debbaba89377b8b81ae9bd84602b17"><td class="memItemLeft" align="right" valign="top"><a id="ga36debbaba89377b8b81ae9bd84602b17"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_read</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, unsigned char *buf, int buflen)</td></tr>
 <tr class="separator:ga36debbaba89377b8b81ae9bd84602b17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga389800c197a9cf2bf3a0449e4f598945"><td class="memItemLeft" align="right" valign="top"><a id="ga389800c197a9cf2bf3a0449e4f598945"></a>
-static int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_signaled</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+static int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_signaled</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="separator:ga389800c197a9cf2bf3a0449e4f598945"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga55f3f63be38671dba897117a02ef09f0"><td class="memItemLeft" align="right" valign="top"><a id="ga55f3f63be38671dba897117a02ef09f0"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_write</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, const unsigned char *buf, int buflen, int final)</td></tr>
@@ -153,7 +153,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_freeze_upd
  given to us.  <a href="a00564.html#gae777dd57e8d1bb40349d7d7d8434fddf">More...</a><br /></td></tr>
 <tr class="separator:gae777dd57e8d1bb40349d7d7d8434fddf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaeeadab3fb1d65c942733014f65eef9bd"><td class="memItemLeft" align="right" valign="top"><a id="gaeeadab3fb1d65c942733014f65eef9bd"></a>
-static <a class="el" href="a01223.html">TDSPACKET</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_packet</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, unsigned len)</td></tr>
+static <a class="el" href="a01223.html">TDSPACKET</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_packet</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, unsigned len)</td></tr>
 <tr class="separator:gaeeadab3fb1d65c942733014f65eef9bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4a2418e0a4533d616ef3da526236f2b8"><td class="memItemLeft" align="right" valign="top"><a id="ga4a2418e0a4533d616ef3da526236f2b8"></a>
 static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#ga4a2418e0a4533d616ef3da526236f2b8">tds_get_socket_error</a> (TDS_SYS_SOCKET sock)</td></tr>
@@ -185,7 +185,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_init_write_buf</b>
 TDSERRNO&#160;</td><td class="memItemRight" valign="bottom"><b>tds_open_socket</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)</td></tr>
 <tr class="separator:gaf805811ba08749b5bbe537366f23c2fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab435f05cbfc6ecb1e206302f44fb00ea"><td class="memItemLeft" align="right" valign="top"><a id="gab435f05cbfc6ecb1e206302f44fb00ea"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_packet_cache_add</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a01223.html">TDSPACKET</a> *packet)</td></tr>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_packet_cache_add</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a01223.html">TDSPACKET</a> *packet)</td></tr>
 <tr class="separator:gab435f05cbfc6ecb1e206302f44fb00ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga221e98a9c8be96ec6c8547891e1b53af"><td class="memItemLeft" align="right" valign="top">unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#ga221e98a9c8be96ec6c8547891e1b53af">tds_peek</a> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds)</td></tr>
 <tr class="memdesc:ga221e98a9c8be96ec6c8547891e1b53af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a byte from the TDS stream without removing it.  <a href="a00564.html#ga221e98a9c8be96ec6c8547891e1b53af">More...</a><br /></td></tr>
@@ -226,7 +226,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_put_smallint</b> (
 <tr class="memitem:gaa3d928726b3f0b53ec235be4b2ab1081"><td class="memItemLeft" align="right" valign="top"><a id="gaa3d928726b3f0b53ec235be4b2ab1081"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_socket_flush</b> (TDS_SYS_SOCKET sock)</td></tr>
 <tr class="separator:gaa3d928726b3f0b53ec235be4b2ab1081"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8560e2536fdcf8f1514d4fa14f90876c"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#ga8560e2536fdcf8f1514d4fa14f90876c">tds_socket_read</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a01235.html">TDSSOCKET</a> *tds, unsigned char *buf, int buflen)</td></tr>
+<tr class="memitem:ga8560e2536fdcf8f1514d4fa14f90876c"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#ga8560e2536fdcf8f1514d4fa14f90876c">tds_socket_read</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a01235.html">TDSSOCKET</a> *tds, unsigned char *buf, int buflen)</td></tr>
 <tr class="memdesc:ga8560e2536fdcf8f1514d4fa14f90876c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read from an OS socket @TODO remove tds, save error somewhere, report error in another way.  <a href="a00564.html#ga8560e2536fdcf8f1514d4fa14f90876c">More...</a><br /></td></tr>
 <tr class="separator:ga8560e2536fdcf8f1514d4fa14f90876c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2a7429ff031f77023d1bf31339a266db"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#ga2a7429ff031f77023d1bf31339a266db">tds_socket_set_nonblocking</a> (TDS_SYS_SOCKET sock)</td></tr>
@@ -235,7 +235,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_socket_flush</b> 
 <tr class="memitem:gae36a2665a4183b4cb211d03e907112ee"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#gae36a2665a4183b4cb211d03e907112ee">tds_socket_set_nosigpipe</a> (TDS_SYS_SOCKET sock, int on)</td></tr>
 <tr class="memdesc:gae36a2665a4183b4cb211d03e907112ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set socket to not throw SIGPIPE.  <a href="a00564.html#gae36a2665a4183b4cb211d03e907112ee">More...</a><br /></td></tr>
 <tr class="separator:gae36a2665a4183b4cb211d03e907112ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad6f81b48fbcfc18ce0b213dbbea47e30"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#gad6f81b48fbcfc18ce0b213dbbea47e30">tds_socket_write</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a01235.html">TDSSOCKET</a> *tds, const unsigned char *buf, int buflen)</td></tr>
+<tr class="memitem:gad6f81b48fbcfc18ce0b213dbbea47e30"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#gad6f81b48fbcfc18ce0b213dbbea47e30">tds_socket_write</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a01235.html">TDSSOCKET</a> *tds, const unsigned char *buf, int buflen)</td></tr>
 <tr class="memdesc:gad6f81b48fbcfc18ce0b213dbbea47e30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write to an OS socket.  <a href="a00564.html#gad6f81b48fbcfc18ce0b213dbbea47e30">More...</a><br /></td></tr>
 <tr class="separator:gad6f81b48fbcfc18ce0b213dbbea47e30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad70d59fb317d098b0c9fd29dd77131a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00564.html#gad70d59fb317d098b0c9fd29dd77131a8">tds_unget_byte</a> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds)</td></tr>
@@ -1195,7 +1195,7 @@ Here is the caller graph for this function:</div>
           <td class="memname">static int tds_socket_read </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1311,7 +1311,7 @@ Here is the caller graph for this function:</div>
           <td class="memname">static int tds_socket_write </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

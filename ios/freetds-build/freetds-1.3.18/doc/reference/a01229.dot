@@ -36,7 +36,7 @@ digraph "tds_connection"
   Node15 [label="tds_cursor",height=0.2,width=0.4,color="red", fillcolor="white", style="filled",URL="$a01199.html",tooltip="Holds informations about a cursor."];
   Node11 -> Node15 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" res_info" ,fontname="Helvetica"];
   Node15 -> Node15 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" next" ,fontname="Helvetica"];
-  Node1 -> Node12 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" conn" ,fontname="Helvetica"];
+  Node1 -> Node12 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" request" ,fontname="Helvetica"];
   Node17 -> Node11 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" columns" ,fontname="Helvetica"];
   Node17 [label="tds_column",height=0.2,width=0.4,color="red", fillcolor="white", style="filled",URL="$a01175.html",tooltip="Metadata about columns in regular and compute rows."];
   Node18 -> Node17 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" char_conv" ,fontname="Helvetica"];

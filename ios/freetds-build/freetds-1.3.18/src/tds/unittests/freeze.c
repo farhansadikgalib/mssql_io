@@ -72,7 +72,7 @@ static bool was_shutdown = false;
 
 static void shutdown_server_socket(void);
 
-#define BLOCK_SIZE (tds->conn->env.block_size)
+#define BLOCK_SIZE (tds->request->env.block_size)
 
 /* thread to read data from main thread */
 static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
@@ -93,7 +93,7 @@ static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 		tdsdump_dump_buf(TDS_DBG_INFO1, "received", buf, len);
 #if ENABLE_ODBC_MARS
 		total_len += len;
-		while (tds->conn->mars && total_len >= BLOCK_SIZE + sizeof(mars)) {
+		while (tds->request->mars && total_len >= BLOCK_SIZE + sizeof(mars)) {
 			mars.signature = TDS72_SMP;
 			mars.type = TDS_SMP_ACK;
 			mars.sid = 0;
@@ -430,7 +430,7 @@ test(int mars, void (*real_test)(void))
 
 #if ENABLE_ODBC_MARS
 	if (mars) {
-		tds->conn->mars = 1;
+		tds->request->mars = 1;
 		assert(tds_realloc_socket(tds, tds->out_buf_max));
 		tds_init_write_buf(tds);
 	}

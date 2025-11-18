@@ -154,16 +154,16 @@ tds_push_func_login(SSL_PUSH_ARGS)
 static SSL_RET
 tds_pull_func(SSL_PULL_ARGS)
 {
-	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
+	TDSCONNECTION *request = (TDSCONNECTION *) SSL_PTR;
 	TDSSOCKET *tds;
 
 	tdsdump_log(TDS_DBG_FUNC, "in tds_pull_func\n");
 
 #if ENABLE_ODBC_MARS
-	tds = conn->in_net_tds;
+	tds = request->in_net_tds;
 	assert(tds);
 #else
-	tds = (TDSSOCKET *) conn;
+	tds = (TDSSOCKET *) request;
 #endif
 
 	/* already initialized (crypted TDS packets) */
@@ -177,16 +177,16 @@ tds_pull_func(SSL_PULL_ARGS)
 static SSL_RET
 tds_push_func(SSL_PUSH_ARGS)
 {
-	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
+	TDSCONNECTION *request = (TDSCONNECTION *) SSL_PTR;
 	TDSSOCKET *tds;
 
 	tdsdump_log(TDS_DBG_FUNC, "in tds_push_func\n");
 
 	/* write to socket directly */
 #if ENABLE_ODBC_MARS
-	tds = conn->in_net_tds;
+	tds = request->in_net_tds;
 #else
-	tds = (TDSSOCKET *) conn;
+	tds = (TDSSOCKET *) request;
 #endif
 	return tds_goodwrite(tds, (const unsigned char*) data, len);
 }
@@ -550,12 +550,12 @@ tds_ssl_init(TDSSOCKET *tds)
 	/* some TLS implementations send some sort of paddind at the end, remove it */
 	tds->in_pos = tds->in_len;
 
-	gnutls_transport_set_ptr(session, tds->conn);
+	gnutls_transport_set_ptr(session, tds->request);
 	gnutls_transport_set_pull_function(session, tds_pull_func);
 	gnutls_transport_set_push_function(session, tds_push_func);
 
-	tds->conn->tls_session = session;
-	tds->conn->tls_credentials = xcred;
+	tds->request->tls_session = session;
+	tds->request->tls_credentials = xcred;
 
 	return TDS_SUCCESS;
 
@@ -569,17 +569,17 @@ cleanup:
 }
 
 void
-tds_ssl_deinit(TDSCONNECTION *conn)
+tds_ssl_deinit(TDSCONNECTION *request)
 {
-	if (conn->tls_session) {
-		gnutls_deinit((gnutls_session_t) conn->tls_session);
-		conn->tls_session = NULL;
+	if (request->tls_session) {
+		gnutls_deinit((gnutls_session_t) request->tls_session);
+		request->tls_session = NULL;
 	}
-	if (conn->tls_credentials) {
-		gnutls_certificate_free_credentials((gnutls_certificate_credentials_t) conn->tls_credentials);
-		conn->tls_credentials = NULL;
+	if (request->tls_credentials) {
+		gnutls_certificate_free_credentials((gnutls_certificate_credentials_t) request->tls_credentials);
+		request->tls_credentials = NULL;
 	}
-	conn->encrypt_single_packet = 0;
+	request->encrypt_single_packet = 0;
 }
 
 #else
@@ -961,7 +961,7 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	tds_check_wildcard_test();
 
-	tds_ssl_deinit(tds->conn);
+	tds_ssl_deinit(tds->request);
 
 	tls_msg = "initializing tls";
 	ctx = tds_init_openssl();
@@ -1062,11 +1062,11 @@ tds_ssl_init(TDSSOCKET *tds)
 	tds->in_pos = tds->in_len;
 
 	BIO_set_init(b2, 1);
-	BIO_set_data(b2, tds->conn);
+	BIO_set_data(b2, tds->request);
 	SSL_set_bio(con, b2, b2);
 
-	tds->conn->tls_session = con;
-	tds->conn->tls_ctx = ctx;
+	tds->request->tls_session = con;
+	tds->request->tls_ctx = ctx;
 
 	return TDS_SUCCESS;
 
@@ -1085,18 +1085,18 @@ cleanup:
 }
 
 void
-tds_ssl_deinit(TDSCONNECTION *conn)
+tds_ssl_deinit(TDSCONNECTION *request)
 {
-	if (conn->tls_session) {
+	if (request->tls_session) {
 		/* NOTE do not call SSL_shutdown here */
-		SSL_free((SSL *) conn->tls_session);
-		conn->tls_session = NULL;
+		SSL_free((SSL *) request->tls_session);
+		request->tls_session = NULL;
 	}
-	if (conn->tls_ctx) {
-		SSL_CTX_free((SSL_CTX *) conn->tls_ctx);
-		conn->tls_ctx = NULL;
+	if (request->tls_ctx) {
+		SSL_CTX_free((SSL_CTX *) request->tls_ctx);
+		request->tls_ctx = NULL;
 	}
-	conn->encrypt_single_packet = 0;
+	request->encrypt_single_packet = 0;
 }
 #endif
 

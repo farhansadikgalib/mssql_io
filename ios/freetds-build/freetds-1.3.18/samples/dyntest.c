@@ -6,7 +6,7 @@ void execute(CS_COMMAND *cmd, char *id, CS_DATAFMT *datafmt, char *p1, char *p2,
 int main() 
 {
 CS_CONTEXT *ctx; 
-CS_CONNECTION *conn; 
+CS_CONNECTION *request;
 CS_COMMAND *cmd; 
 CS_RETCODE ret;
 CS_RETCODE restype;
@@ -14,12 +14,12 @@ CS_DATAFMT datafmt[10];
 
    ret = cs_ctx_alloc(CS_VERSION_100, &ctx);
    ret = ct_init(ctx, CS_VERSION_100);
-   ret = ct_con_alloc(ctx, &conn);
-   ret = ct_con_props(conn, CS_SET, CS_USERNAME, "guest", CS_NULLTERM, NULL);
-   ret = ct_con_props(conn, CS_SET, CS_PASSWORD, "sybase", CS_NULLTERM, NULL);
-   /* ret = ct_con_props(conn, CS_SET, CS_IFILE, "/devl/t3624bb/myinterf", CS_NULLTERM, NULL); */
-   ret = ct_connect(conn, "JDBC", CS_NULLTERM);
-   ret = ct_cmd_alloc(conn, &cmd);
+   ret = ct_con_alloc(ctx, &request);
+   ret = ct_con_props(request, CS_SET, CS_USERNAME, "guest", CS_NULLTERM, NULL);
+   ret = ct_con_props(request, CS_SET, CS_PASSWORD, "sybase", CS_NULLTERM, NULL);
+   /* ret = ct_con_props(request, CS_SET, CS_IFILE, "/devl/t3624bb/myinterf", CS_NULLTERM, NULL); */
+   ret = ct_connect(request, "JDBC", CS_NULLTERM);
+   ret = ct_cmd_alloc(request, &cmd);
 
    ret = ct_command(cmd, CS_LANG_CMD, "drop table tempdb..prepare_bug ", CS_NULLTERM, CS_UNUSED);
    if (ret != CS_SUCCEED) {

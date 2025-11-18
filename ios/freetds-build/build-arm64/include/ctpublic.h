@@ -98,7 +98,7 @@ CS_RETCODE ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con);
 CS_RETCODE ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len);
 CS_RETCODE ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen);
 CS_RETCODE ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd);
-CS_RETCODE ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type);
+CS_RETCODE ct_cancel(CS_CONNECTION * request, CS_COMMAND * cmd, CS_INT type);
 CS_RETCODE ct_cmd_drop(CS_COMMAND * cmd);
 CS_RETCODE ct_close(CS_CONNECTION * con, CS_INT option);
 CS_RETCODE ct_con_drop(CS_CONNECTION * con);
@@ -128,7 +128,7 @@ CS_RETCODE ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID
 CS_RETCODE ct_poll(CS_CONTEXT * ctx, CS_CONNECTION * connection, CS_INT milliseconds, CS_CONNECTION ** compconn,
 		   CS_COMMAND ** compcmd, CS_INT * compid, CS_INT * compstatus);
 CS_RETCODE ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR * text, CS_INT tlen, CS_INT option);
-CS_RETCODE ct_diag(CS_CONNECTION * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer);
+CS_RETCODE ct_diag(CS_CONNECTION * request, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer);
 
 #ifdef __cplusplus
 #if 0

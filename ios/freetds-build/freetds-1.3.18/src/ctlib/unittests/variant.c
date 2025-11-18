@@ -15,7 +15,7 @@ int
 main(int argc, char *argv[])
 {
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
+	CS_CONNECTION *request;
 	CS_COMMAND *cmd;
 	int verbose = 0;
 
@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
@@ -63,13 +63,13 @@ main(int argc, char *argv[])
 	switch (result_type) {
 	case CS_CMD_FAIL:
 		fprintf(stderr, "ct_results() result_type CS_CMD_FAIL, probably not MSSQL.\n");
-		try_ctlogout(ctx, conn, cmd, verbose);
+		try_ctlogout(ctx, request, cmd, verbose);
 		return 0;
 	case CS_CMD_SUCCEED:
 		break;
 	default:
 		fprintf(stderr, "ct_results() unexpected return %d.\n", result_type);
-		try_ctlogout(ctx, conn, cmd, verbose);
+		try_ctlogout(ctx, request, cmd, verbose);
 		return 1;
 	}
 
@@ -193,7 +193,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;

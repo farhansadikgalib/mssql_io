@@ -43,7 +43,7 @@ static TDSRET _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset)
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 
-#define CONN(bulk) ((CS_CONNECTION *) (bulk)->bcpinfo.parent)
+#define request(bulk) ((CS_CONNECTION *) (bulk)->bcpinfo.parent)
 
 TDS_COMPILE_CHECK(same_size, sizeof(CS_BLKDESC) == sizeof(TDSBCPINFO));
 TDS_COMPILE_CHECK(nested_type, TDS_OFFSET(CS_BLKDESC, bcpinfo) == 0);
@@ -58,7 +58,7 @@ blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer)
 	if (!connection || !connection->tds_socket)
 		return CS_FAIL;
 
-	if (connection->tds_socket->conn->tds_version < 0x500)
+	if (connection->tds_socket->request->tds_version < 0x500)
 		return CS_FAIL;
 
 	blkdesc = (CS_BLKDESC *) tds_alloc_bcpinfo();
@@ -86,7 +86,7 @@ blk_bind(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buff
 	if (!blkdesc) {
 		return CS_FAIL;
 	}
-	con = CONN(blkdesc);
+	con = request(blkdesc);
 
 	if (item == CS_UNUSED) {
 		/* clear all bindings */
@@ -196,7 +196,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	tdsdump_log(TDS_DBG_FUNC, "blk_describe(%p, %d, %p)\n", blkdesc, item, datafmt);
 
 	if (item < 1 || item > blkdesc->bcpinfo.bindinfo->num_cols) {
-		_ctclient_msg(CONN(blkdesc), "blk_describe", 2, 5, 1, 141, "%s, %d", "colnum", item);
+		_ctclient_msg(request(blkdesc), "blk_describe", 2, 5, 1, 141, "%s, %d", "colnum", item);
 		return CS_FAIL;
 	}
 
@@ -240,12 +240,12 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 
 	tdsdump_log(TDS_DBG_FUNC, "blk_done(%p, %d, %p)\n", blkdesc, type, outrow);
 
-	tds = CONN(blkdesc)->tds_socket;
+	tds = request(blkdesc)->tds_socket;
 
 	switch (type) {
 	case CS_BLK_BATCH:
 		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
-			_ctclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_ctclient_msg(request(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
@@ -253,14 +253,14 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 			*outrow = rows_copied;
 		
 		if (TDS_FAILED(tds_bcp_start(tds, &blkdesc->bcpinfo))) {
-			_ctclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_ctclient_msg(request(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		break;
 		
 	case CS_BLK_ALL:
 		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
-			_ctclient_msg(CONN(blkdesc), "blk_done", 2, 5, 1, 140, "");
+			_ctclient_msg(request(blkdesc), "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
@@ -321,12 +321,12 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	}
 
 	if (direction != CS_BLK_IN && direction != CS_BLK_OUT ) {
-		_ctclient_msg(CONN(blkdesc), "blk_init", 2, 6, 1, 138, "");
+		_ctclient_msg(request(blkdesc), "blk_init", 2, 6, 1, 138, "");
 		return CS_FAIL;
 	}
 
 	if (!tablename) {
-		_ctclient_msg(CONN(blkdesc), "blk_init", 2, 6, 1, 139, "");
+		_ctclient_msg(request(blkdesc), "blk_init", 2, 6, 1, 139, "");
 		return CS_FAIL;
 	}
 	if (tnamelen == CS_NULLTERM)
@@ -344,8 +344,8 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
 	blkdesc->bcpinfo.xfer_init = 0;
 
-	if (TDS_FAILED(tds_bcp_init(CONN(blkdesc)->tds_socket, &blkdesc->bcpinfo))) {
-		_ctclient_msg(CONN(blkdesc), "blk_init", 2, 5, 1, 140, "");
+	if (TDS_FAILED(tds_bcp_init(request(blkdesc)->tds_socket, &blkdesc->bcpinfo))) {
+		_ctclient_msg(request(blkdesc), "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
@@ -383,13 +383,13 @@ blk_props(CS_BLKDESC * blkdesc, CS_INT action, CS_INT property, CS_VOID * buffer
 			return CS_SUCCEED;
 			break;
 		default:
-			_ctclient_msg(CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "action", action);
+			_ctclient_msg(request(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "action", action);
 			break;
 		}
 		break;
 
 	default:
-		_ctclient_msg(CONN(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "property", property);
+		_ctclient_msg(request(blkdesc), "blk_props", 2, 5, 1, 141, "%s, %d", "property", property);
 		break;
 	}
 	return CS_FAIL;
@@ -493,10 +493,10 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_rowxfer_out(%p, %d, %p)\n", blkdesc, rows_to_xfer, rows_xferred);
 
-	if (!blkdesc || !CONN(blkdesc))
+	if (!blkdesc || !request(blkdesc))
 		return CS_FAIL;
 
-	tds = CONN(blkdesc)->tds_socket;
+	tds = request(blkdesc)->tds_socket;
 
 	/*
 	 * the first time blk_xfer called after blk_init()
@@ -506,7 +506,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 	if (blkdesc->bcpinfo.xfer_init == 0) {
 
 		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", tds_dstr_cstr(&blkdesc->bcpinfo.tablename)))) {
-			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_ctclient_msg(request(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -516,7 +516,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 		}
 	
 		if (ret != TDS_SUCCESS || result_type != TDS_ROW_RESULT) {
-			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_ctclient_msg(request(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -536,7 +536,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 		case TDS_SUCCESS:
 			if (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT) {
 				if (result_type == TDS_ROW_RESULT) {
-					if (_ct_bind_data( CONN(blkdesc)->ctx, tds->current_results, blkdesc->bcpinfo.bindinfo, temp_count))
+					if (_ct_bind_data( request(blkdesc)->ctx, tds->current_results, blkdesc->bcpinfo.bindinfo, temp_count))
 						return CS_ROW_FAIL;
 					if (rows_xferred)
 						*rows_xferred = *rows_xferred + 1;
@@ -548,7 +548,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 			break;
 
 		default:
-			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_ctclient_msg(request(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 			break;
 		}
@@ -568,7 +568,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 	if (!blkdesc)
 		return CS_FAIL;
 
-	tds = CONN(blkdesc)->tds_socket;
+	tds = request(blkdesc)->tds_socket;
 
 	/*
 	 * the first time blk_xfer called after blk_init()
@@ -583,7 +583,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 		 */
 
 		if (TDS_FAILED(tds_bcp_start_copy_in(tds, &blkdesc->bcpinfo))) {
-			_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
+			_ctclient_msg(request(blkdesc), "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 
@@ -607,7 +607,7 @@ _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_null_error(%p, %d, %d)\n", bcpinfo, index, offset);
 
-	_ctclient_msg(CONN(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  index + 1, offset + 1);
+	_ctclient_msg(request(blkdesc), "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  index + 1, offset + 1);
 }
 
 static TDSRET
@@ -623,7 +623,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	CS_SMALLINT *nullind = NULL;
 	CS_INT      *datalen = NULL;
 	CS_BLKDESC *blkdesc = (CS_BLKDESC *) bulk;
-	CS_CONTEXT *ctx = CONN(blkdesc)->ctx;
+	CS_CONTEXT *ctx = request(blkdesc)->ctx;
 	CS_DATAFMT srcfmt, destfmt;
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_get_col_data(%p, %p, %d)\n", bulk, bindcol, offset);

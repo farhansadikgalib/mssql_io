@@ -173,7 +173,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	/* 
 	 * Validate other parameters 
 	 */
-	if (dbproc->tds_socket->conn->tds_version < 0x500) {
+	if (dbproc->tds_socket->request->tds_version < 0x500) {
 		dbperror(dbproc, SYBETDSVER, 0);
 		return FAIL;
 	}
@@ -183,7 +183,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return FAIL;
 	}
 
-	if (direction != DB_QUERYOUT && !IS_TDS7_PLUS(dbproc->tds_socket->conn) &&
+	if (direction != DB_QUERYOUT && !IS_TDS7_PLUS(dbproc->tds_socket->request) &&
 	    strlen(tblname) > 92) {	/* 30.30.30 for Sybase */
 		dbperror(dbproc, SYBEBCITBLEN, 0);
 		return FAIL;
@@ -765,11 +765,11 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 			num->precision = 18;
 			num->scale = 0;
 		}
-		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) num);
+		buflen = tds_convert(dbproc->tds_socket->request->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) num);
 		if (buflen > 0)
 			buflen = tds_numeric_bytes_per_prec[num->precision] + 2;
 	} else if (!is_variable_type(hostcol->datatype)) {
-		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) (*p_data));
+		buflen = tds_convert(dbproc->tds_socket->request->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) (*p_data));
 	} else {
 		CONV_RESULT cr;
 
@@ -778,7 +778,7 @@ _bcp_convert_out(DBPROCESS * dbproc, TDSCOLUMN *curcol, BCP_HOSTCOLINFO *hostcol
 		 * because bcpcol->data_size is zero, so dbconvert() won't write anything,
 		 * and returns zero.
 		 */
-		buflen = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) &cr);
+		buflen = tds_convert(dbproc->tds_socket->request->tds_ctx, srctype, src, srclen, hostcol->datatype, (CONV_RESULT *) &cr);
 		if (buflen < 0)
 			return buflen;
 
@@ -1067,7 +1067,7 @@ _bcp_convert_in(DBPROCESS *dbproc, TDS_SERVER_TYPE srctype, const TDS_CHAR *src,
 		p_cr = &cr;
 	}
 
-	len = tds_convert(dbproc->tds_socket->conn->tds_ctx, srctype, src, srclen, desttype, p_cr);
+	len = tds_convert(dbproc->tds_socket->request->tds_ctx, srctype, src, srclen, desttype, p_cr);
 	if (len < 0) {
 		_dblib_convert_err(dbproc, len);
 		return TDS_FAIL;

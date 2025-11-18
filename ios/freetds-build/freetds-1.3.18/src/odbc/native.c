@@ -86,7 +86,7 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, DSTR *str)
 
 	assert(dbc);
 
-	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && dbc->tds_socket->conn->product_version >= TDS_MS_VER(7, 0, 0);
+	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && dbc->tds_socket->request->product_version >= TDS_MS_VER(7, 0, 0);
 
 	/*
 	 * we can do it because result string will be
@@ -261,7 +261,7 @@ prepare_call(struct _hstmt * stmt)
 	if (tds_dstr_isempty(&stmt->query))
 		return SQL_ERROR;
 
-	if ((!tds_dstr_isempty(&stmt->attr.qn_msgtext) || !tds_dstr_isempty(&stmt->attr.qn_options)) && !IS_TDS72_PLUS(stmt->dbc->tds_socket->conn)) {
+	if ((!tds_dstr_isempty(&stmt->attr.qn_msgtext) || !tds_dstr_isempty(&stmt->attr.qn_options)) && !IS_TDS72_PLUS(stmt->dbc->tds_socket->request)) {
 		odbc_errs_add(&stmt->errs, "HY000", "Feature is not supported by this server");
 		return SQL_SUCCESS_WITH_INFO;
 	}

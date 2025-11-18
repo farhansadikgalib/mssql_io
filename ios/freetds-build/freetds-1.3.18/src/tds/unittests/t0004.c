@@ -76,7 +76,7 @@ main(int argc, char **argv)
 	 * The heart of the test
 	 */
 	if (verbose) {
-		printf("block size %d\n", tds->conn->env.block_size);
+		printf("block size %d\n", tds->request->env.block_size);
 	}
 	rc = tds_submit_query(tds, long_query);
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCESS) {

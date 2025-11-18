@@ -165,7 +165,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	bool compute_row, const TDS_DESC* axd, unsigned int n_row)
 {
 	TDS_DBC * dbc = stmt->dbc;
-	TDSCONNECTION * conn = dbc->tds_socket->conn;
+	TDSCONNECTION * request = dbc->tds_socket->request;
 	TDS_SERVER_TYPE dest_type;
 	int src_type, sql_src_type, res;
 	CONV_RESULT ores;
@@ -184,7 +184,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	tdsdump_log(TDS_DBG_INFO2, "type=%d\n", drec_ixd->sql_desc_concise_type);
 
 	/* what type to convert ? */
-	dest_type = odbc_sql_to_server_type(conn, drec_ixd->sql_desc_concise_type, drec_ixd->sql_desc_unsigned);
+	dest_type = odbc_sql_to_server_type(request, drec_ixd->sql_desc_concise_type, drec_ixd->sql_desc_unsigned);
 	if (dest_type == TDS_INVALID_TYPE) {
 		odbc_errs_add(&stmt->errs, "07006", NULL);	/* Restricted data type attribute violation */
 		return SQL_ERROR;
@@ -196,21 +196,21 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 	if (sql_src_type == SQL_C_DEFAULT)
 		sql_src_type = odbc_sql_to_c_type_default(drec_ixd->sql_desc_concise_type);
 
-	tds_set_param_type(conn, curcol, dest_type);
+	tds_set_param_type(request, curcol, dest_type);
 
 	/* TODO what happen for unicode types ?? */
 	if (is_char_type(dest_type)) {
-		TDSICONV *conv = conn->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
+		TDSICONV *conv = request->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
 
 		/* use binary format for binary to char */
 		if (sql_src_type == SQL_C_BINARY) {
 			curcol->char_conv = NULL;
 		} else if (sql_src_type == SQL_C_WCHAR) {
-			curcol->char_conv = tds_iconv_get_info(conn, odbc_get_wide_canonic(conn), conv->to.charset.canonic);
-			memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
+			curcol->char_conv = tds_iconv_get_info(request, odbc_get_wide_canonic(request), conv->to.charset.canonic);
+			memcpy(curcol->column_collation, request->collation, sizeof(request->collation));
 		} else {
 #ifdef ENABLE_ODBC_WIDE
-			curcol->char_conv = tds_iconv_get_info(conn, dbc->original_charset_num, conv->to.charset.canonic);
+			curcol->char_conv = tds_iconv_get_info(request, dbc->original_charset_num, conv->to.charset.canonic);
 #else
 			curcol->char_conv = NULL;
 #endif
@@ -248,7 +248,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _dre
 		}
 	} else if (dest_type != SYBBIT) {
 		/* TODO only a trick... */
-		tds_set_param_type(conn, curcol, tds_get_null_type(dest_type));
+		tds_set_param_type(request, curcol, tds_get_null_type(dest_type));
 	}
 
 	/* test source type */

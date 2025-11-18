@@ -328,10 +328,10 @@ tds_set_spid(TDSSOCKET * tds)
 			curcol = tds->res_info->columns[0];
 			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
 			case SYBINT2:
-				tds->conn->spid = *((TDS_USMALLINT *) curcol->column_data);
+				tds->request->spid = *((TDS_USMALLINT *) curcol->column_data);
 				break;
 			case SYBINT4:
-				tds->conn->spid = *((TDS_UINT *) curcol->column_data);
+				tds->request->spid = *((TDS_UINT *) curcol->column_data);
 				break;
 			default:
 				return TDS_FAIL;
@@ -365,14 +365,14 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 	if (login->text_size) {
 		sprintf(str, "set textsize %d ", login->text_size);
 	}
-	if (set_spid && tds->conn->spid == -1) {
+	if (set_spid && tds->request->spid == -1) {
 		strcat(str, "select @@spid ");
 	}
 	/* Select proper database if specified.
 	 * SQL Anywhere does not support multiple databases and USE statement
 	 * so don't send the request to avoid connection failures */
 	if (set_db && !tds_dstr_isempty(&login->database) &&
-	    (tds->conn->product_name == NULL || strcasecmp(tds->conn->product_name, "SQL Anywhere") != 0)) {
+	    (tds->request->product_name == NULL || strcasecmp(tds->request->product_name, "SQL Anywhere") != 0)) {
 		strcat(str, "use ");
 		tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
 	}
@@ -388,7 +388,7 @@ tds_setup_connection(TDSSOCKET *tds, TDSLOGIN *login, bool set_db, bool set_spid
 	if (TDS_FAILED(erc))
 		return erc;
 
-	if (set_spid && tds->conn->spid == -1)
+	if (set_spid && tds->request->spid == -1)
 		erc = tds_set_spid(tds);
 	else
 		erc = tds_process_simple_query(tds);
@@ -446,14 +446,14 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		tds->env_chg_func = tds_save_env;
 
 		for (i = 0; i < TDS_VECTOR_SIZE(versions); ++i) {
-			int orig_size = tds->conn->env.block_size;
+			int orig_size = tds->request->env.block_size;
 			login->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
 			erc = tds_connect(tds, login, p_oserr);
 			if (TDS_FAILED(erc)) {
 				tds_close_socket(tds);
-				if (tds->conn->env.block_size != orig_size)
+				if (tds->request->env.block_size != orig_size)
 					tds_realloc_socket(tds, orig_size);
 			}
 			
@@ -486,12 +486,12 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 
 	tds->login = login;
 
-	tds->conn->tds_version = login->tds_version;
+	tds->request->tds_version = login->tds_version;
 
 	/* set up iconv if not already initialized*/
-	if (tds->conn->char_convs[client2ucs2]->to.cd == (iconv_t) -1) {
+	if (tds->request->char_convs[client2ucs2]->to.cd == (iconv_t) -1) {
 		if (!tds_dstr_isempty(&login->client_charset)) {
-			if (TDS_FAILED(tds_iconv_open(tds->conn, tds_dstr_cstr(&login->client_charset), login->use_utf16)))
+			if (TDS_FAILED(tds_iconv_open(tds->request, tds_dstr_cstr(&login->client_charset), login->use_utf16)))
 				return -TDSEMEM;
 		}
 	}
@@ -514,10 +514,10 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		return -TDSECONN;
 	}
 
-	tds->conn->capabilities = login->capabilities;
+	tds->request->capabilities = login->capabilities;
 
 reroute:
-	tds_ssl_deinit(tds->conn);
+	tds_ssl_deinit(tds->request);
 	erc = TDSEINTF;
 	orig_port = login->port;
 	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
@@ -552,7 +552,7 @@ reroute:
 
 		login->port = orig_port;
 
-		if (!IS_TDS50(tds->conn) && !tds_dstr_isempty(&login->instance_name) && !login->port)
+		if (!IS_TDS50(tds->request) && !tds_dstr_isempty(&login->instance_name) && !login->port)
 			login->port = tds7_get_instance_port(addrs, tds_dstr_cstr(&login->instance_name));
 
 		if (login->port >= 1) {
@@ -578,18 +578,18 @@ reroute:
 	 */
 		
 	tds_set_state(tds, TDS_IDLE);
-	tds->conn->spid = -1;
+	tds->request->spid = -1;
 
 	/* discard possible previous authentication */
-	if (tds->conn->authentication) {
-		tds->conn->authentication->free(tds->conn, tds->conn->authentication);
-		tds->conn->authentication = NULL;
+	if (tds->request->authentication) {
+		tds->request->authentication->free(tds->request, tds->request->authentication);
+		tds->request->authentication = NULL;
 	}
 
-	if (IS_TDS71_PLUS(tds->conn)) {
+	if (IS_TDS71_PLUS(tds->request)) {
 		erc = tds71_do_login(tds, login);
 		db_selected = true;
-	} else if (IS_TDS7_PLUS(tds->conn)) {
+	} else if (IS_TDS7_PLUS(tds->request)) {
 		erc = tds7_send_login(tds, login);
 		db_selected = true;
 	} else {
@@ -604,7 +604,7 @@ reroute:
 	}
 
 	/* need to do rerouting */
-	if (IS_TDS71_PLUS(tds->conn)
+	if (IS_TDS71_PLUS(tds->request)
 	    && !tds_dstr_isempty(&login->routing_address) && login->routing_port) {
 		TDSRET ret;
 		char *server_name = NULL;
@@ -639,15 +639,15 @@ reroute:
 
 #if ENABLE_ODBC_MARS
 	/* initialize SID */
-	if (IS_TDS72_PLUS(tds->conn) && login->mars) {
+	if (IS_TDS72_PLUS(tds->request) && login->mars) {
 		TDS72_SMP_HEADER *p;
 
 		tds_extra_assert(tds->sid == 0);
-		tds_extra_assert(tds->conn->sessions[0] == tds);
+		tds_extra_assert(tds->request->sessions[0] == tds);
 		tds_extra_assert(tds->send_packet != NULL);
 		tds_extra_assert(!tds->send_packet->next);
 
-		tds->conn->mars = 1;
+		tds->request->mars = 1;
 
 		/* start session with a SMP SYN */
 		if (TDS_FAILED(tds_append_syn(tds)))
@@ -668,7 +668,7 @@ reroute:
 
 	erc = tds_setup_connection(tds, login, !db_selected, true);
 	/* try without asking @@spid, some servers do not support it */
-	if (TDS_FAILED(erc) && tds->conn->spid == -1)
+	if (TDS_FAILED(erc) && tds->request->spid == -1)
 		erc = tds_setup_connection(tds, login, !db_selected, false);
 	if (TDS_FAILED(erc))
 		return erc;
@@ -731,7 +731,7 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		return TDS_FAIL;
 	}
 	if (tds_dstr_isempty(&login->user_name)) {
-		if (!IS_TDS50(tds->conn)) {
+		if (!IS_TDS50(tds->request)) {
 			tdsdump_log(TDS_DBG_ERROR, "Kerberos login not supported using TDS 4.x\n");
 			return TDS_FAIL;
 		}
@@ -740,8 +740,8 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		/* try kerberos */
 		sec_flags = TDS5_SEC_LOG_SECSESS;
 		use_kerberos = true;
-		tds->conn->authentication = tds_gss_get_auth(tds);
-		if (!tds->conn->authentication)
+		tds->request->authentication = tds_gss_get_auth(tds);
+		if (!tds->request->authentication)
 			return TDS_FAIL;
 #else
 		tdsdump_log(TDS_DBG_ERROR, "requested GSS authentication but not compiled in\n");
@@ -751,22 +751,22 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	if (encryption_level == TDS_ENCRYPTION_DEFAULT)
 		encryption_level = TDS_ENCRYPTION_OFF;
 	if (!use_kerberos && encryption_level != TDS_ENCRYPTION_OFF) {
-		if (!IS_TDS50(tds->conn)) {
+		if (!IS_TDS50(tds->request)) {
 			tdsdump_log(TDS_DBG_ERROR, "Encryption not supported using TDS 4.x\n");
 			return TDS_FAIL;
 		}
-		tds->conn->authentication = tds5_negotiate_get_auth(tds);
-		if (!tds->conn->authentication)
+		tds->request->authentication = tds5_negotiate_get_auth(tds);
+		if (!tds->request->authentication)
 			return TDS_FAIL;
 	}
 
-	if (IS_TDS42(tds->conn)) {
+	if (IS_TDS42(tds->request)) {
 		memcpy(protocol_version, "\004\002\000\000", 4);
 		memcpy(program_version, "\004\002\000\000", 4);
-	} else if (IS_TDS46(tds->conn)) {
+	} else if (IS_TDS46(tds->request)) {
 		memcpy(protocol_version, "\004\006\000\000", 4);
 		memcpy(program_version, "\004\002\000\000", 4);
-	} else if (IS_TDS50(tds->conn)) {
+	} else if (IS_TDS50(tds->request)) {
 		memcpy(protocol_version, "\005\000\000\000", 4);
 		memcpy(program_version, "\005\000\000\000", 4);
 	} else {
@@ -792,7 +792,7 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	tds_put_n(tds, le1, 6);
 	tds_put_byte(tds, !login->bulk_copy);
 	tds_put_n(tds, NULL, 2);
-	if (IS_TDS42(tds->conn)) {
+	if (IS_TDS42(tds->request)) {
 		tds_put_int(tds, 512);
 	} else {
 		tds_put_int(tds, 0);
@@ -800,7 +800,7 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	tds_put_n(tds, NULL, 3);
 	tds_put_login_string(tds, tds_dstr_cstr(&login->app_name), TDS_MAXNAME);
 	tds_put_login_string(tds, lservname, TDS_MAXNAME);
-	if (IS_TDS42(tds->conn)) {
+	if (IS_TDS42(tds->request)) {
 		tds_put_login_string(tds, tds_dstr_cstr(&login->password), 255);
 	} else if (encryption_level != TDS_ENCRYPTION_OFF) {
 		tds_put_n(tds, NULL, 256);
@@ -817,7 +817,7 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	tds_put_n(tds, protocol_version, 4);	/* TDS version; { 0x04,0x02,0x00,0x00 } */
 	tds_put_login_string(tds, tds_dstr_cstr(&login->library), TDS_PROGNLEN);	/* client program name */
-	if (IS_TDS42(tds->conn)) {
+	if (IS_TDS42(tds->request)) {
 		tds_put_int(tds, 0);
 	} else {
 		tds_put_n(tds, program_version, 4);	/* program version ? */
@@ -852,18 +852,18 @@ tds_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		strcpy(blockstr, "512");
 	tds_put_login_string(tds, blockstr, TDS_PKTLEN);
 
-	if (IS_TDS42(tds->conn)) {
+	if (IS_TDS42(tds->request)) {
 		tds_put_n(tds, NULL, 8);
-	} else if (IS_TDS46(tds->conn)) {
+	} else if (IS_TDS46(tds->request)) {
 		tds_put_n(tds, NULL, 4);
-	} else if (IS_TDS50(tds->conn)) {
+	} else if (IS_TDS50(tds->request)) {
 		/* just padding to 8 bytes */
 		tds_put_n(tds, NULL, 4);
 
 		/* send capabilities */
 		tds_put_byte(tds, TDS_CAPABILITY_TOKEN);
-		tds_put_smallint(tds, sizeof(tds->conn->capabilities));
-		tds_put_n(tds, &tds->conn->capabilities, sizeof(tds->conn->capabilities));
+		tds_put_smallint(tds, sizeof(tds->request->capabilities));
+		tds_put_n(tds, &tds->request->capabilities, sizeof(tds->request->capabilities));
 	}
 
 #ifdef ENABLE_KRB5
@@ -923,7 +923,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	static const char ext_data[] =
 		"\x0a\x01\x00\x00\x00\x01"	/* Enable UTF-8 */
 		"\xff";
-	size_t ext_len = IS_TDS74_PLUS(tds->conn) ? sizeof(ext_data) - 1 : 0;
+	size_t ext_len = IS_TDS74_PLUS(tds->request) ? sizeof(ext_data) - 1 : 0;
 
 	/* fields */
 	enum {
@@ -947,33 +947,33 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	tds->out_flag = TDS7_LOGIN;
 
-	current_pos = packet_size = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
+	current_pos = packet_size = IS_TDS72_PLUS(tds->request) ? 86 + 8 : 86;	/* ? */
 
 	/* check ntlm */
 #ifdef HAVE_SSPI
 	if (strchr(user_name, '\\') != NULL || user_name_len == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "using SSPI authentication for '%s' account\n", user_name);
-		tds->conn->authentication = tds_sspi_get_auth(tds);
-		if (!tds->conn->authentication)
+		tds->request->authentication = tds_sspi_get_auth(tds);
+		if (!tds->request->authentication)
 			return TDS_FAIL;
-		auth_len = tds->conn->authentication->packet_len;
+		auth_len = tds->request->authentication->packet_len;
 		packet_size += auth_len;
 #else
 	if (strchr(user_name, '\\') != NULL) {
 		tdsdump_log(TDS_DBG_INFO2, "using NTLM authentication for '%s' account\n", user_name);
-		tds->conn->authentication = tds_ntlm_get_auth(tds);
-		if (!tds->conn->authentication)
+		tds->request->authentication = tds_ntlm_get_auth(tds);
+		if (!tds->request->authentication)
 			return TDS_FAIL;
-		auth_len = tds->conn->authentication->packet_len;
+		auth_len = tds->request->authentication->packet_len;
 		packet_size += auth_len;
 	} else if (user_name_len == 0) {
 # ifdef ENABLE_KRB5
 		/* try kerberos */
 		tdsdump_log(TDS_DBG_INFO2, "using GSS authentication\n");
-		tds->conn->authentication = tds_gss_get_auth(tds);
-		if (!tds->conn->authentication)
+		tds->request->authentication = tds_gss_get_auth(tds);
+		if (!tds->request->authentication)
 			return TDS_FAIL;
-		auth_len = tds->conn->authentication->packet_len;
+		auth_len = tds->request->authentication->packet_len;
 		packet_size += auth_len;
 # else
 		tdsdump_log(TDS_DBG_ERROR, "requested GSS authentication but not compiled in\n");
@@ -997,7 +997,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	/* setup data fields */
 	memset(data_fields, 0, sizeof(data_fields));
 	SET_FIELD_DSTR(HOST_NAME, login->client_host_name, 128);
-	if (!tds->conn->authentication) {
+	if (!tds->request->authentication) {
 		SET_FIELD_DSTR(USER_NAME, login->user_name, 128);
 		SET_FIELD_DSTR(PASSWORD, login->password, 128);
 	}
@@ -1007,7 +1007,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	SET_FIELD_DSTR(LANGUAGE, login->language, 128);
 	SET_FIELD_DSTR(DATABASE_NAME, login->database, 128);
 	SET_FIELD_DSTR(DB_FILENAME, login->db_filename, 260);
-	if (IS_TDS72_PLUS(tds->conn) && login->use_new_password) {
+	if (IS_TDS72_PLUS(tds->request) && login->use_new_password) {
 		option_flag3 |= TDS_CHANGE_PASSWORD;
 		SET_FIELD_DSTR(NEW_PASSWORD, login->new_password, 128);
 	}
@@ -1022,7 +1022,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		field->pos = current_pos + data_pos;
 		if (field->len) {
 			tds_staticin_stream_init(&input, field->ptr, field->len);
-			rc = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &input.stream, &data_stream.stream);
+			rc = tds_convert_stream(tds, tds->request->char_convs[client2ucs2], to_server, &input.stream, &data_stream.stream);
 			if (TDS_FAILED(rc)) {
 				free(data);
 				return TDS_FAIL;
@@ -1097,16 +1097,16 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 		
 	tds_put_byte(tds, option_flag1);
 
-	if (tds->conn->authentication)
+	if (tds->request->authentication)
 		option_flag2 |= TDS_INTEGRATED_SECURITY_ON;
 
 	tds_put_byte(tds, option_flag2);
 
-	if (login->readonly_intent && IS_TDS71_PLUS(tds->conn))
+	if (login->readonly_intent && IS_TDS71_PLUS(tds->request))
 		sql_type_flag |= TDS_READONLY_INTENT;
 	tds_put_byte(tds, sql_type_flag);
 
-	if (IS_TDS73_PLUS(tds->conn))
+	if (IS_TDS73_PLUS(tds->request))
 		option_flag3 |= TDS_UNKNOWN_COLLATION_HANDLING;
 	tds_put_byte(tds, option_flag3);
 
@@ -1120,7 +1120,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	/* host name */
 	PUT_STRING_FIELD_PTR(HOST_NAME);
-	if (tds->conn->authentication) {
+	if (tds->request->authentication) {
 		tds_put_int(tds, 0);
 		tds_put_int(tds, 0);
 	} else {
@@ -1158,7 +1158,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 	/* db file */
 	PUT_STRING_FIELD_PTR(DB_FILENAME);
 
-	if (IS_TDS72_PLUS(tds->conn)) {
+	if (IS_TDS72_PLUS(tds->request)) {
 		/* new password */
 		PUT_STRING_FIELD_PTR(NEW_PASSWORD);
 
@@ -1168,8 +1168,8 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	tds_put_n(tds, data, data_stream.size);
 
-	if (tds->conn->authentication)
-		tds_put_n(tds, tds->conn->authentication->packet, auth_len);
+	if (tds->request->authentication)
+		tds_put_n(tds, tds->request->authentication->packet, auth_len);
 
 	if (ext_len)
 		tds_put_n(tds, ext_data, ext_len);
@@ -1234,7 +1234,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	TDS_TINYINT encryption_level = login->encryption_level;
 
 	SET_UI16BE(13, instance_name_len);
-	if (!IS_TDS72_PLUS(tds->conn)) {
+	if (!IS_TDS72_PLUS(tds->request)) {
 		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
 		/* strip MARS setting */
 		buf[20] = 0xff;
@@ -1267,7 +1267,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	tds_put_n(tds, buf, start_pos);
 	/* netlib version */
-	tds_put_n(tds, IS_TDS72_PLUS(tds->conn) ? netlib9 : netlib8, 6);
+	tds_put_n(tds, IS_TDS72_PLUS(tds->request) ? netlib9 : netlib8, 6);
 	/* encryption */
 #if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
 	/* not supported */
@@ -1290,7 +1290,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	/* pid */
 	tds_put_int(tds, getpid());
 	/* MARS (1 enabled) */
-	if (IS_TDS72_PLUS(tds->conn))
+	if (IS_TDS72_PLUS(tds->request))
 #if ENABLE_ODBC_MARS
 		tds_put_byte(tds, login->mars);
 	login->mars = 0;
@@ -1332,7 +1332,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 			crypt_flag = p[off];
 		}
 #if ENABLE_ODBC_MARS
-		if (IS_TDS72_PLUS(tds->conn) && type == 4 && len >= 1)
+		if (IS_TDS72_PLUS(tds->request) && type == 4 && len >= 1)
 			login->mars = p[off];
 #endif
 	}
@@ -1364,13 +1364,13 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	/* server just encrypt the first packet */
 	if (crypt_flag == TDS7_ENCRYPT_OFF)
-		tds->conn->encrypt_single_packet = 1;
+		tds->request->encrypt_single_packet = 1;
 
 	ret = tds7_send_login(tds, login);
 
 	/* if flag is TDS7_ENCRYPT_OFF(0) it means that after login server continue not encrypted */
 	if (crypt_flag == TDS7_ENCRYPT_OFF || TDS_FAILED(ret))
-		tds_ssl_deinit(tds->conn);
+		tds_ssl_deinit(tds->request);
 
 	return ret;
 }

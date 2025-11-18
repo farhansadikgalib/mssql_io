@@ -731,34 +731,34 @@ odbc_sql_to_c_type_default(int sql_type)
 }
 
 TDS_SERVER_TYPE
-odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
+odbc_sql_to_server_type(TDSCONNECTION * request, int sql_type, int sql_unsigned)
 {
 
 	switch (sql_type) {
 	case SQL_WCHAR:
-		if (IS_TDS7_PLUS(conn))
+		if (IS_TDS7_PLUS(request))
 			return XSYBNCHAR;
 		/* fall thought */
 	case SQL_CHAR:
 		return SYBCHAR;
 	case SQL_WVARCHAR:
-		if (IS_TDS7_PLUS(conn))
+		if (IS_TDS7_PLUS(request))
 			return XSYBNVARCHAR;
 		/* fall thought */
 	case SQL_VARCHAR:
 		return SYBVARCHAR;
 	case SQL_SS_VARIANT:
-		if (IS_TDS71_PLUS(conn))
+		if (IS_TDS71_PLUS(request))
 			return SYBVARIANT;
-		if (IS_TDS7_PLUS(conn))
+		if (IS_TDS7_PLUS(request))
 			return XSYBNVARCHAR;
 		return SYBVARCHAR;
 	case SQL_SS_XML:
-		if (IS_TDS72_PLUS(conn))
+		if (IS_TDS72_PLUS(request))
 			return SYBMSXML;
 		/* fall thought */
 	case SQL_WLONGVARCHAR:
-		if (IS_TDS7_PLUS(conn))
+		if (IS_TDS7_PLUS(request))
 			return SYBNTEXT;
 		/* fall thought */
 	case SQL_LONGVARCHAR:
@@ -769,7 +769,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 		return SYBNUMERIC;
 #ifdef SQL_GUID
 	case SQL_GUID:
-		if (IS_TDS7_PLUS(conn))
+		if (IS_TDS7_PLUS(request))
 			return SYBUNIQUE;
 		return TDS_INVALID_TYPE;
 #endif
@@ -779,15 +779,15 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 	case SQL_TINYINT:
 		return SYBINT1;
 	case SQL_SMALLINT:
-		if (sql_unsigned && tds_capability_has_req(conn, TDS_REQ_DATA_UINT2))
+		if (sql_unsigned && tds_capability_has_req(request, TDS_REQ_DATA_UINT2))
 			return SYBUINT2;
 		return SYBINT2;
 	case SQL_INTEGER:
-		if (sql_unsigned && tds_capability_has_req(conn, TDS_REQ_DATA_UINT4))
+		if (sql_unsigned && tds_capability_has_req(request, TDS_REQ_DATA_UINT4))
 			return SYBUINT4;
 		return SYBINT4;
 	case SQL_BIGINT:
-		if (sql_unsigned && tds_capability_has_req(conn, TDS_REQ_DATA_UINT8))
+		if (sql_unsigned && tds_capability_has_req(request, TDS_REQ_DATA_UINT8))
 			return SYBUINT8;
 		return SYBINT8;
 	case SQL_REAL:
@@ -801,38 +801,38 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 	case SQL_TIMESTAMP:
 		/* ODBC version 3 */
 	case SQL_TYPE_DATE:
-		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGDATETIME))
+		if (IS_TDS50(request) && tds_capability_has_req(request, TDS_REQ_DATA_BIGDATETIME))
 			return SYB5BIGDATETIME;
-		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_DATE))
+		if (IS_TDS50(request) && tds_capability_has_req(request, TDS_REQ_DATA_DATE))
 			return SYBDATE;
-		if (IS_TDS73_PLUS(conn))
+		if (IS_TDS73_PLUS(request))
 			return SYBMSDATE;
 		goto type_timestamp;
 	case SQL_TYPE_TIME:
-		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGTIME))
+		if (IS_TDS50(request) && tds_capability_has_req(request, TDS_REQ_DATA_BIGTIME))
 			return SYB5BIGTIME;
-		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_TIME))
+		if (IS_TDS50(request) && tds_capability_has_req(request, TDS_REQ_DATA_TIME))
 			return SYBTIME;
-		if (IS_TDS73_PLUS(conn))
+		if (IS_TDS73_PLUS(request))
 			return SYBMSTIME;
 		/* fall thought */
 	type_timestamp:
 	case SQL_TYPE_TIMESTAMP:
-		if (IS_TDS73_PLUS(conn))
+		if (IS_TDS73_PLUS(request))
 			return SYBMSDATETIME2;
-		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGDATETIME))
+		if (IS_TDS50(request) && tds_capability_has_req(request, TDS_REQ_DATA_BIGDATETIME))
 			return SYB5BIGDATETIME;
 		return SYBDATETIME;
 	case SQL_SS_TIME2:
-		if (IS_TDS73_PLUS(conn))
+		if (IS_TDS73_PLUS(request))
 			return SYBMSTIME;
-		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGDATETIME))
+		if (IS_TDS50(request) && tds_capability_has_req(request, TDS_REQ_DATA_BIGDATETIME))
 			return SYB5BIGDATETIME;
 		return SYBDATETIME;
 	case SQL_SS_TIMESTAMPOFFSET:
-		if (IS_TDS73_PLUS(conn))
+		if (IS_TDS73_PLUS(request))
 			return SYBMSDATETIMEOFFSET;
-		if (IS_TDS50(conn) && tds_capability_has_req(conn, TDS_REQ_DATA_BIGDATETIME))
+		if (IS_TDS50(request) && tds_capability_has_req(request, TDS_REQ_DATA_BIGDATETIME))
 			return SYB5BIGDATETIME;
 		return SYBDATETIME;
 	case SQL_BINARY:
@@ -851,7 +851,7 @@ odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 void
 odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 {
-	TDS_UINT version = tds->conn->product_version;
+	TDS_UINT version = tds->request->product_version;
 	sprintf(pversion_string, "%.02d.%.02d.%.04d", (int) ((version & 0x7F000000) >> 24),
 		(int) ((version & 0x00FF0000) >> 16), (int) (version & 0x0000FFFF));
 }

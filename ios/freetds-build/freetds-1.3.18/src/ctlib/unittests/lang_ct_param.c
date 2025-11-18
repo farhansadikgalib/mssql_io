@@ -20,7 +20,7 @@ static const char *query =
 CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
 
-static int insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames);
+static int insert_test(CS_CONNECTION *request, CS_COMMAND *cmd, int useNames);
 
 /* Testing: binding of data via ct_param */
 int
@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 	int errCode = 0;
 	
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
+	CS_CONNECTION *request;
 	CS_COMMAND *cmd;
 	int verbose = 0;
 
@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
@@ -65,13 +65,13 @@ main(int argc, char *argv[])
 	}
 
 	/* test by name */
-	errCode = insert_test(conn, cmd, 1);
+	errCode = insert_test(request, cmd, 1);
 	/* if worked, test by position */
 	if (0 == errCode)
-		errCode = insert_test(conn, cmd, 0);
+		errCode = insert_test(request, cmd, 0);
 	query = "insert into #ctparam_lang (name,name2,age,cost,bdate,fval) values (?, ?, ?, ?, ?, ?)";
 	if (0 == errCode)
-		errCode = insert_test(conn, cmd, 0);
+		errCode = insert_test(request, cmd, 0);
 
 	if (verbose && (0 == errCode))
 		printf("lang_ct_param tests successful\n");
@@ -80,7 +80,7 @@ ERR:
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;
@@ -90,7 +90,7 @@ ERR:
 }
 
 static int 
-insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
+insert_test(CS_CONNECTION *request, CS_COMMAND *cmd, int useNames)
 {
 	CS_CONTEXT *ctx;
 
@@ -147,11 +147,11 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	 * to a CS_MONEY variable. Since this routine does not have the
 	 * context handle, we use the property functions to get it.
 	 */
-	if ((ret = ct_cmd_props(cmd, CS_GET, CS_PARENT_HANDLE, &conn, CS_UNUSED, NULL)) != CS_SUCCEED) {
+	if ((ret = ct_cmd_props(cmd, CS_GET, CS_PARENT_HANDLE, &request, CS_UNUSED, NULL)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_cmd_props() failed\n");
 		return 1;
 	}
-	if ((ret = ct_con_props(conn, CS_GET, CS_PARENT_HANDLE, &ctx, CS_UNUSED, NULL)) != CS_SUCCEED) {
+	if ((ret = ct_con_props(request, CS_GET, CS_PARENT_HANDLE, &ctx, CS_UNUSED, NULL)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_con_props() failed\n");
 		return 1;
 	}

@@ -41,7 +41,7 @@ int cslibmsg_cb_invoked = 0;
 int clientmsg_cb_invoked = 0;
 int servermsg_cb_invoked = 0;
 
-static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
+static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** request, CS_COMMAND ** cmd, int verbose);
 
 #if defined(__MINGW32__) || defined(_MSC_VER)
 static char *
@@ -174,7 +174,7 @@ establish_login(int argc, char **argv)
 }
 
 CS_RETCODE
-try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)
+try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** request, CS_COMMAND ** cmd, int verbose)
 {
 	CS_RETCODE ret;
 
@@ -184,12 +184,12 @@ try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION
 		}
 		return ret;
 	}
-	return continue_logging_in(ctx, conn, cmd, verbose);
+	return continue_logging_in(ctx, request, cmd, verbose);
 }
 
 /* old way: because I'm too lazy to change every unit test */
 CS_RETCODE
-try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)
+try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** request, CS_COMMAND ** cmd, int verbose)
 {
 	CS_RETCODE ret;
 
@@ -199,11 +199,11 @@ try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int ver
 		}
 		return ret;
 	}
-	return continue_logging_in(ctx, conn, cmd, verbose);
+	return continue_logging_in(ctx, request, cmd, verbose);
 }
 
 CS_RETCODE
-continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)
+continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** request, CS_COMMAND ** cmd, int verbose)
 {
 	CS_RETCODE ret;
 	char query[512+10];
@@ -244,21 +244,21 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		fprintf(stderr, "ct_callback() failed\n");
 		return ret;
 	}
-	ret = ct_con_alloc(*ctx, conn);
+	ret = ct_con_alloc(*ctx, request);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "Connect Alloc failed!\n");
 		}
 		return ret;
 	}
-	ret = ct_con_props(*conn, CS_SET, CS_USERNAME, USER, CS_NULLTERM, NULL);
+	ret = ct_con_props(*request, CS_SET, CS_USERNAME, USER, CS_NULLTERM, NULL);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "ct_con_props() SET USERNAME failed!\n");
 		}
 		return ret;
 	}
-	ret = ct_con_props(*conn, CS_SET, CS_PASSWORD, PASSWORD, CS_NULLTERM, NULL);
+	ret = ct_con_props(*request, CS_SET, CS_PASSWORD, PASSWORD, CS_NULLTERM, NULL);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "ct_con_props() SET PASSWORD failed!\n");
@@ -268,24 +268,24 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 
 	printf("connecting as %s to %s.%s\n", USER, SERVER, DATABASE);
 
-	ret = ct_connect(*conn, SERVER, CS_NULLTERM);
+	ret = ct_connect(*request, SERVER, CS_NULLTERM);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "Connection failed!\n");
 		}
-		ct_con_drop(*conn);
-		*conn = NULL;
+		ct_con_drop(*request);
+		*request = NULL;
 		cs_ctx_drop(*ctx);
 		*ctx = NULL;
 		return ret;
 	}
-	ret = ct_cmd_alloc(*conn, cmd);
+	ret = ct_cmd_alloc(*request, cmd);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "Command Alloc failed!\n");
 		}
-		ct_con_drop(*conn);
-		*conn = NULL;
+		ct_con_drop(*request);
+		*request = NULL;
 		cs_ctx_drop(*ctx);
 		*ctx = NULL;
 		return ret;
@@ -302,11 +302,11 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 
 
 CS_RETCODE
-try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * conn, CS_COMMAND * cmd, int verbose)
+try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * request, CS_COMMAND * cmd, int verbose)
 {
 	CS_RETCODE ret;
 
-	ret = ct_cancel(conn, NULL, CS_CANCEL_ALL);
+	ret = ct_cancel(request, NULL, CS_CANCEL_ALL);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {
 			fprintf(stderr, "ct_cancel() failed!\n");
@@ -314,8 +314,8 @@ try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * conn, CS_COMMAND * cmd, int verbo
 		return ret;
 	}
 	ct_cmd_drop(cmd);
-	ct_close(conn, CS_UNUSED);
-	ct_con_drop(conn);
+	ct_close(request, CS_UNUSED);
+	ct_con_drop(request);
 	ct_exit(ctx, CS_UNUSED);
 	cs_ctx_drop(ctx);
 

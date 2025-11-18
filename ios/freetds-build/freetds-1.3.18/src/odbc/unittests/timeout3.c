@@ -133,7 +133,7 @@ int
 main(int argc, char *argv[])
 {
 	SQLTCHAR tmp[2048];
-	char conn[128];
+	char request[128];
 	SQLTCHAR sqlstate[6];
 	SQLSMALLINT len;
 	int port;
@@ -187,9 +187,9 @@ main(int argc, char *argv[])
 
 	/* this is expected to work with unixODBC */
 	printf("try to connect to our port just to check connection timeout\n");
-	sprintf(conn, "DRIVER=FreeTDS;SERVER=127.0.0.1;Port=%d;TDS_Version=7.0;UID=test;PWD=test;DATABASE=tempdb;", port);
+	sprintf(request, "DRIVER=FreeTDS;SERVER=127.0.0.1;Port=%d;TDS_Version=7.0;UID=test;PWD=test;DATABASE=tempdb;", port);
 	start_time = time(NULL);
-	CHKDriverConnect(NULL, T(conn), SQL_NTS, tmp, TDS_VECTOR_SIZE(tmp), &len, SQL_DRIVER_NOPROMPT, "E");
+	CHKDriverConnect(NULL, T(request), SQL_NTS, tmp, TDS_VECTOR_SIZE(tmp), &len, SQL_DRIVER_NOPROMPT, "E");
 	end_time = time(NULL);
 
 	memset(sqlstate, 'X', sizeof(sqlstate));

@@ -34,7 +34,7 @@ digraph "tds_socket"
   Node17 [label="tds_cursor_status",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$a01195.html",tooltip=" "];
   Node8 -> Node16 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" res_info" ,fontname="Helvetica"];
   Node16 -> Node16 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" next" ,fontname="Helvetica"];
-  Node18 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" conn" ,fontname="Helvetica"];
+  Node18 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" request" ,fontname="Helvetica"];
   Node18 [label="tds_connection",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$a01231.html",tooltip=" "];
   Node3 -> Node18 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" capabilities" ,fontname="Helvetica"];
   Node19 -> Node18 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" wakeup" ,fontname="Helvetica"];

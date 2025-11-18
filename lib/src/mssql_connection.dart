@@ -51,8 +51,8 @@ class MssqlConnection {
   /// 
   /// Example:
   /// ```dart
-  /// final conn = MssqlConnection.getInstance();
-  /// final success = await conn.connect(
+  /// final request = MssqlConnection.getInstance();
+  /// final success = await request.connect(
   ///   host: '192.168.1.100',
   ///   port: 1433,
   ///   databaseName: 'MyDatabase',
@@ -155,7 +155,7 @@ class MssqlConnection {
   /// 
   /// Example:
   /// ```dart
-  /// final result = await conn.getData('SELECT * FROM Users WHERE Age > 18');
+  /// final result = await request.getData('SELECT * FROM Users WHERE Age > 18');
   /// for (final row in result.rows) {
   ///   print('Name: ${row['Name']}, Age: ${row['Age']}');
   /// }
@@ -192,7 +192,7 @@ class MssqlConnection {
   /// 
   /// Example:
   /// ```dart
-  /// final result = await conn.getDataWithParams(
+  /// final result = await request.getDataWithParams(
   ///   'SELECT * FROM Users WHERE Age > @minAge AND City = @city',
   ///   [
   ///     SqlParameter(name: 'minAge', value: 18),
@@ -241,7 +241,7 @@ class MssqlConnection {
   /// 
   /// Example:
   /// ```dart
-  /// final affected = await conn.writeData(
+  /// final affected = await request.writeData(
   ///   "INSERT INTO Users (Name, Age) VALUES ('John', 25)"
   /// );
   /// print('Inserted $affected rows');
@@ -280,7 +280,7 @@ class MssqlConnection {
   /// 
   /// Example:
   /// ```dart
-  /// final affected = await conn.writeDataWithParams(
+  /// final affected = await request.writeDataWithParams(
   ///   'UPDATE Users SET Age = @age WHERE Name = @name',
   ///   [
   ///     SqlParameter(name: 'age', value: 26),
@@ -332,13 +332,13 @@ class MssqlConnection {
   /// 
   /// Example:
   /// ```dart
-  /// await conn.beginTransaction();
+  /// await request.beginTransaction();
   /// try {
-  ///   await conn.writeData('INSERT INTO Users (Name) VALUES ("Alice")');
-  ///   await conn.writeData('INSERT INTO Orders (UserId) VALUES (1)');
-  ///   await conn.commit();
+  ///   await request.writeData('INSERT INTO Users (Name) VALUES ("Alice")');
+  ///   await request.writeData('INSERT INTO Orders (UserId) VALUES (1)');
+  ///   await request.commit();
   /// } catch (e) {
-  ///   await conn.rollback();
+  ///   await request.rollback();
   /// }
   /// ```
   Future<void> beginTransaction() async {
@@ -445,7 +445,7 @@ class MssqlConnection {
   ///   {'Name': 'Bob', 'Age': 30},
   ///   {'Name': 'Charlie', 'Age': 35},
   /// ];
-  /// final inserted = await conn.bulkInsert('Users', rows, batchSize: 1000);
+  /// final inserted = await request.bulkInsert('Users', rows, batchSize: 1000);
   /// print('Inserted $inserted rows');
   /// ```
   Future<int> bulkInsert(

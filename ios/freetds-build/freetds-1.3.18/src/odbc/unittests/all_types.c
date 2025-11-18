@@ -87,9 +87,9 @@ main(int argc, char *argv[])
 	assert(!dbc->tds_socket);
 	dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
 	assert(dbc->tds_socket);
-	dbc->tds_socket->conn->use_iconv = 0;
+	dbc->tds_socket->request->use_iconv = 0;
 	tds_set_parent(dbc->tds_socket, dbc);
-	if (TDS_FAILED(tds_iconv_open(dbc->tds_socket->conn, "UTF-8", 1))) {
+	if (TDS_FAILED(tds_iconv_open(dbc->tds_socket->request, "UTF-8", 1))) {
 		fprintf(stderr, "Failed to initialize iconv\n");
 		return 1;
 	}

@@ -28,20 +28,20 @@ void main() {
   const skipIntegrationTests = true;
 
   group('MSSQL Connection Integration Tests', () {
-    late MssqlConnection conn;
+    late MssqlConnection request;
 
     setUp(() {
-      conn = MssqlConnection.getInstance();
+      request = MssqlConnection.getInstance();
     });
 
     tearDown(() async {
-      if (conn.isConnected) {
-        await conn.disconnect();
+      if (request.isConnected) {
+        await request.disconnect();
       }
     });
 
     test('Connect to SQL Server', () async {
-      final connected = await conn.connect(
+      final connected = await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -51,11 +51,11 @@ void main() {
       );
 
       expect(connected, true);
-      expect(conn.isConnected, true);
+      expect(request.isConnected, true);
     }, skip: skipIntegrationTests);
 
     test('Execute simple SELECT query', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -63,7 +63,7 @@ void main() {
         password: testConfig.password,
       );
 
-      final result = await conn.getData('SELECT 1 AS num, \'test\' AS str');
+      final result = await request.getData('SELECT 1 AS num, \'test\' AS str');
 
       expect(result.columns, contains('num'));
       expect(result.columns, contains('str'));
@@ -73,7 +73,7 @@ void main() {
     }, skip: skipIntegrationTests);
 
     test('Execute parameterized query', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -81,7 +81,7 @@ void main() {
         password: testConfig.password,
       );
 
-      final result = await conn.getDataWithParams(
+      final result = await request.getDataWithParams(
         'SELECT @value AS result',
         [SqlParameter(name: 'value', value: 42)],
       );
@@ -91,7 +91,7 @@ void main() {
     }, skip: skipIntegrationTests);
 
     test('Create table, insert, query, and drop', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -100,7 +100,7 @@ void main() {
       );
 
       // Create test table
-      await conn.writeData('''
+      await request.writeData('''
         IF OBJECT_ID('TestUsers', 'U') IS NOT NULL 
           DROP TABLE TestUsers;
         CREATE TABLE TestUsers (
@@ -111,7 +111,7 @@ void main() {
       ''');
 
       // Insert data
-      final inserted = await conn.writeDataWithParams(
+      final inserted = await request.writeDataWithParams(
         'INSERT INTO TestUsers (Name, Age) VALUES (@name, @age)',
         [
           SqlParameter(name: 'name', value: 'Alice'),
@@ -121,17 +121,17 @@ void main() {
       expect(inserted, 1);
 
       // Query data
-      final result = await conn.getData('SELECT * FROM TestUsers');
+      final result = await request.getData('SELECT * FROM TestUsers');
       expect(result.rows.length, 1);
       expect(result.rows[0]['Name'], 'Alice');
       expect(result.rows[0]['Age'], 25);
 
       // Clean up
-      await conn.writeData('DROP TABLE TestUsers');
+      await request.writeData('DROP TABLE TestUsers');
     }, skip: skipIntegrationTests);
 
     test('Transaction commit', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -140,7 +140,7 @@ void main() {
       );
 
       // Setup
-      await conn.writeData('''
+      await request.writeData('''
         IF OBJECT_ID('TestCounter', 'U') IS NOT NULL 
           DROP TABLE TestCounter;
         CREATE TABLE TestCounter (Value INT);
@@ -148,20 +148,20 @@ void main() {
       ''');
 
       // Transaction
-      await conn.beginTransaction();
-      await conn.writeData('UPDATE TestCounter SET Value = 10');
-      await conn.commit();
+      await request.beginTransaction();
+      await request.writeData('UPDATE TestCounter SET Value = 10');
+      await request.commit();
 
       // Verify
-      final result = await conn.getData('SELECT Value FROM TestCounter');
+      final result = await request.getData('SELECT Value FROM TestCounter');
       expect(result.rows[0]['Value'], 10);
 
       // Cleanup
-      await conn.writeData('DROP TABLE TestCounter');
+      await request.writeData('DROP TABLE TestCounter');
     }, skip: skipIntegrationTests);
 
     test('Transaction rollback', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -170,7 +170,7 @@ void main() {
       );
 
       // Setup
-      await conn.writeData('''
+      await request.writeData('''
         IF OBJECT_ID('TestCounter', 'U') IS NOT NULL 
           DROP TABLE TestCounter;
         CREATE TABLE TestCounter (Value INT);
@@ -178,20 +178,20 @@ void main() {
       ''');
 
       // Transaction with rollback
-      await conn.beginTransaction();
-      await conn.writeData('UPDATE TestCounter SET Value = 99');
-      await conn.rollback();
+      await request.beginTransaction();
+      await request.writeData('UPDATE TestCounter SET Value = 99');
+      await request.rollback();
 
       // Verify value unchanged
-      final result = await conn.getData('SELECT Value FROM TestCounter');
+      final result = await request.getData('SELECT Value FROM TestCounter');
       expect(result.rows[0]['Value'], 0);
 
       // Cleanup
-      await conn.writeData('DROP TABLE TestCounter');
+      await request.writeData('DROP TABLE TestCounter');
     }, skip: skipIntegrationTests);
 
     test('Bulk insert', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -200,7 +200,7 @@ void main() {
       );
 
       // Setup table
-      await conn.writeData('''
+      await request.writeData('''
         IF OBJECT_ID('BulkTest', 'U') IS NOT NULL 
           DROP TABLE BulkTest;
         CREATE TABLE BulkTest (
@@ -215,19 +215,19 @@ void main() {
         (i) => {'Id': i, 'Name': 'User$i'},
       );
 
-      final inserted = await conn.bulkInsert('BulkTest', rows, batchSize: 50);
+      final inserted = await request.bulkInsert('BulkTest', rows, batchSize: 50);
       expect(inserted, greaterThan(0));
 
       // Verify
-      final result = await conn.getData('SELECT COUNT(*) AS cnt FROM BulkTest');
+      final result = await request.getData('SELECT COUNT(*) AS cnt FROM BulkTest');
       expect(result.rows[0]['cnt'], greaterThan(0));
 
       // Cleanup
-      await conn.writeData('DROP TABLE BulkTest');
+      await request.writeData('DROP TABLE BulkTest');
     }, skip: skipIntegrationTests);
 
     test('Handle null values', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -235,14 +235,14 @@ void main() {
         password: testConfig.password,
       );
 
-      final result = await conn.getData('SELECT NULL AS nullval');
+      final result = await request.getData('SELECT NULL AS nullval');
 
       expect(result.rows.length, 1);
       expect(result.rows[0]['nullval'], isNull);
     }, skip: skipIntegrationTests);
 
     test('Handle multiple result rows', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -250,7 +250,7 @@ void main() {
         password: testConfig.password,
       );
 
-      final result = await conn.getData('''
+      final result = await request.getData('''
         SELECT 1 AS num UNION ALL
         SELECT 2 UNION ALL
         SELECT 3
@@ -265,7 +265,7 @@ void main() {
     test('Connection timeout', () async {
       // Try to connect to unreachable host with short timeout
       try {
-        await conn.connect(
+        await request.connect(
           host: '192.0.2.1', // TEST-NET-1 (unreachable)
           port: 1433,
           databaseName: 'TestDB',
@@ -280,7 +280,7 @@ void main() {
     }, skip: skipIntegrationTests);
 
     test('Disconnect and reconnect', () async {
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -288,10 +288,10 @@ void main() {
         password: testConfig.password,
       );
 
-      await conn.disconnect();
-      expect(conn.isConnected, false);
+      await request.disconnect();
+      expect(request.isConnected, false);
 
-      await conn.connect(
+      await request.connect(
         host: testConfig.host,
         port: testConfig.port,
         databaseName: testConfig.databaseName,
@@ -299,7 +299,7 @@ void main() {
         password: testConfig.password,
       );
 
-      expect(conn.isConnected, true);
+      expect(request.isConnected, true);
     }, skip: skipIntegrationTests);
   });
 }

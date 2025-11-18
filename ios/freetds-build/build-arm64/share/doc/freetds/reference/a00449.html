@@ -292,10 +292,10 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>TDS_CANCELLED</b>&#160;&#160;&#160;((TDSRET)-2)</td></tr>
 <tr class="separator:a987e54bec017cf5b8ccd961ed717e178"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c08a758fed595d0da501fe2b2c51ae9"><td class="memItemLeft" align="right" valign="top"><a id="a1c08a758fed595d0da501fe2b2c51ae9"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_capability_has_req</b>(conn,  cap)&#160;&#160;&#160;	tds_capability_enabled(&amp;conn-&gt;capabilities.types[0], cap)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_capability_has_req</b>(request,  cap)&#160;&#160;&#160;	tds_capability_enabled(&amp;request-&gt;capabilities.types[0], cap)</td></tr>
 <tr class="separator:a1c08a758fed595d0da501fe2b2c51ae9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98eac18f295fb2ca2e71fe9038fe6fc6"><td class="memItemLeft" align="right" valign="top"><a id="a98eac18f295fb2ca2e71fe9038fe6fc6"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_capability_has_res</b>(conn,  cap)&#160;&#160;&#160;	tds_capability_enabled(&amp;conn-&gt;capabilities.types[1], cap)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_capability_has_res</b>(request,  cap)&#160;&#160;&#160;	tds_capability_enabled(&amp;request-&gt;capabilities.types[1], cap)</td></tr>
 <tr class="separator:a98eac18f295fb2ca2e71fe9038fe6fc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c5d144e678cc1a2cb58dd6603c35976"><td class="memItemLeft" align="right" valign="top"><a id="a7c5d144e678cc1a2cb58dd6603c35976"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>TDS_CMD_DONE</b>&#160;&#160;&#160;4046</td></tr>
@@ -424,7 +424,7 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>TDS_FAILED</b>(rc)&#160;&#160;&#160;((rc)&lt;0)</td></tr>
 <tr class="separator:a122058fc57306cb5cf766793f02861cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2a35b916f213c239af21edbde6990ae"><td class="memItemLeft" align="right" valign="top"><a id="ae2a35b916f213c239af21edbde6990ae"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_ctx</b>(tds)&#160;&#160;&#160;((tds)-&gt;conn-&gt;tds_ctx)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_ctx</b>(tds)&#160;&#160;&#160;((tds)-&gt;request-&gt;tds_ctx)</td></tr>
 <tr class="separator:ae2a35b916f213c239af21edbde6990ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4dca1dfe5cddb568ab10945398e95104"><td class="memItemLeft" align="right" valign="top"><a id="a4dca1dfe5cddb568ab10945398e95104"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_int</b>(tds)&#160;&#160;&#160;((TDS_INT) <a class="el" href="a00564.html#ga9ac121c269e203337a48c5bf8afc48c3">tds_get_uint</a>(tds))</td></tr>
@@ -436,7 +436,7 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_parent</b>(tds)&#160;&#160;&#160;((tds)-&gt;parent)</td></tr>
 <tr class="separator:a1eb9f55bb86919e70ceaa382343ee12c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f4113d7ff8d3737a64e75b8d7aae03f"><td class="memItemLeft" align="right" valign="top"><a id="a5f4113d7ff8d3737a64e75b8d7aae03f"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_s</b>(tds)&#160;&#160;&#160;((tds)-&gt;conn-&gt;s)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_s</b>(tds)&#160;&#160;&#160;((tds)-&gt;request-&gt;s)</td></tr>
 <tr class="separator:a5f4113d7ff8d3737a64e75b8d7aae03f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a587b60a5a1b50d275186ff3e41aa27d0"><td class="memItemLeft" align="right" valign="top"><a id="a587b60a5a1b50d275186ff3e41aa27d0"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_smallint</b>(tds)&#160;&#160;&#160;((TDS_SMALLINT) <a class="el" href="a00564.html#gad38aa5b9547817854ccba1fcc7855861">tds_get_usmallint</a>(tds))</td></tr>
@@ -456,10 +456,10 @@ Macros</h2></td></tr>
 <tr class="memitem:a344de1e031df0e1d11a10aa70cc38944"><td class="memItemLeft" align="right" valign="top"><a id="a344de1e031df0e1d11a10aa70cc38944"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>TDS_INVALID_TYPE</b>&#160;&#160;&#160;((TDS_SERVER_TYPE) 0)</td></tr>
 <tr class="separator:a344de1e031df0e1d11a10aa70cc38944"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a07e9371c3e72b9e319f4c14e6fc2c20f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a07e9371c3e72b9e319f4c14e6fc2c20f">TDS_IS_MSSQL</a>(x)&#160;&#160;&#160;(((x)-&gt;conn-&gt;product_version &amp; 0x80000000u)!=0)</td></tr>
+<tr class="memitem:a07e9371c3e72b9e319f4c14e6fc2c20f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a07e9371c3e72b9e319f4c14e6fc2c20f">TDS_IS_MSSQL</a>(x)&#160;&#160;&#160;(((x)-&gt;request-&gt;product_version &amp; 0x80000000u)!=0)</td></tr>
 <tr class="memdesc:a07e9371c3e72b9e319f4c14e6fc2c20f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if product is Microsft SQL Server.  <a href="a00449.html#a07e9371c3e72b9e319f4c14e6fc2c20f">More...</a><br /></td></tr>
 <tr class="separator:a07e9371c3e72b9e319f4c14e6fc2c20f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4840433488d0c66601ff4002a54b41d7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a4840433488d0c66601ff4002a54b41d7">TDS_IS_SYBASE</a>(x)&#160;&#160;&#160;(!((x)-&gt;conn-&gt;product_version &amp; 0x80000000u))</td></tr>
+<tr class="memitem:a4840433488d0c66601ff4002a54b41d7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a4840433488d0c66601ff4002a54b41d7">TDS_IS_SYBASE</a>(x)&#160;&#160;&#160;(!((x)-&gt;request-&gt;product_version &amp; 0x80000000u))</td></tr>
 <tr class="memdesc:a4840433488d0c66601ff4002a54b41d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if product is Sybase (such as Adaptive Server Enterrprice).  <a href="a00449.html#a4840433488d0c66601ff4002a54b41d7">More...</a><br /></td></tr>
 <tr class="separator:a4840433488d0c66601ff4002a54b41d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c5b8e1e1e56bdd1314671f63ac8f533"><td class="memItemLeft" align="right" valign="top"><a id="a4c5b8e1e1e56bdd1314671f63ac8f533"></a>
@@ -539,13 +539,13 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>TDS_ROWFMT_RESULT</b>&#160;&#160;&#160;4049</td></tr>
 <tr class="separator:a1b7905e8a05bef269a1b00225fab96f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2049733937263779a7063689e0d90476"><td class="memItemLeft" align="right" valign="top"><a id="a2049733937263779a7063689e0d90476"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_ctx</b>(tds,  val)&#160;&#160;&#160;do { ((tds)-&gt;conn-&gt;tds_ctx) = (val); } while(0)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_ctx</b>(tds,  val)&#160;&#160;&#160;do { ((tds)-&gt;request-&gt;tds_ctx) = (val); } while(0)</td></tr>
 <tr class="separator:a2049733937263779a7063689e0d90476"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad540f1ef12384c90274a99e349eb724c"><td class="memItemLeft" align="right" valign="top"><a id="ad540f1ef12384c90274a99e349eb724c"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_parent</b>(tds,  val)&#160;&#160;&#160;do { ((tds)-&gt;parent) = (val); } while(0)</td></tr>
 <tr class="separator:ad540f1ef12384c90274a99e349eb724c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a980494a2ce978b7b15990539239f05a8"><td class="memItemLeft" align="right" valign="top"><a id="a980494a2ce978b7b15990539239f05a8"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_s</b>(tds,  val)&#160;&#160;&#160;do { ((tds)-&gt;conn-&gt;s) = (val); } while(0)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_s</b>(tds,  val)&#160;&#160;&#160;do { ((tds)-&gt;request-&gt;s) = (val); } while(0)</td></tr>
 <tr class="separator:a980494a2ce978b7b15990539239f05a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c216ecb9737c4950941dda7139a2b3f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><b>TDS_START_LEN_GENERIC</b>(<a class="el" href="a01235.html">tds_socket</a>,  len)</td></tr>
 <tr class="separator:a2c216ecb9737c4950941dda7139a2b3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1502,13 +1502,13 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>tds5_send_optioncmd</b
 <tr class="memdesc:ga954dcc3b0332fa9448d9edf59c0fe439"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get port of all instances.  <a href="a00564.html#ga954dcc3b0332fa9448d9edf59c0fe439">More...</a><br /></td></tr>
 <tr class="separator:ga954dcc3b0332fa9448d9edf59c0fe439"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1db9b785009f6c3d81dcdc92fd3fed99"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds7_srv_charset_changed</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, TDS_UCHAR collate[5])</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds7_srv_charset_changed</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, TDS_UCHAR collate[5])</td></tr>
 <tr class="separator:ga1db9b785009f6c3d81dcdc92fd3fed99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac56a35582ee84901b48f17510a838797"><td class="memItemLeft" align="right" valign="top">
 const char *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_addrinfo2str</b> (struct addrinfo *addr, char *name, int namemax)</td></tr>
 <tr class="separator:gac56a35582ee84901b48f17510a838797"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5e0b840ff194e2d60b726bc1efaef23"><td class="memItemLeft" align="right" valign="top"><a id="ab5e0b840ff194e2d60b726bc1efaef23"></a>
-<a class="el" href="a01235.html">TDSSOCKET</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_alloc_additional_socket</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+<a class="el" href="a01235.html">TDSSOCKET</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_alloc_additional_socket</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="separator:ab5e0b840ff194e2d60b726bc1efaef23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaad13f39e96cf5055c47929f5f7aa602e"><td class="memItemLeft" align="right" valign="top">
 <a class="el" href="a01167.html">BCPCOLDATA</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_alloc_bcp_column_data</b> (unsigned int column_size)</td></tr>
@@ -1531,7 +1531,7 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_alloc_compute_r
 <tr class="memitem:ga03efb3a4934d0524958c5cbf4018561d"><td class="memItemLeft" align="right" valign="top">
 <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_alloc_cursor</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen)</td></tr>
 <tr class="separator:ga03efb3a4934d0524958c5cbf4018561d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga69559de43b47f4a9e2eecc7a56527444"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00562.html#ga69559de43b47f4a9e2eecc7a56527444">tds_alloc_dynamic</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, const char *id)</td></tr>
+<tr class="memitem:ga69559de43b47f4a9e2eecc7a56527444"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00562.html#ga69559de43b47f4a9e2eecc7a56527444">tds_alloc_dynamic</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, const char *id)</td></tr>
 <tr class="memdesc:ga69559de43b47f4a9e2eecc7a56527444"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate a dynamic statement.  <a href="a00562.html#ga69559de43b47f4a9e2eecc7a56527444">More...</a><br /></td></tr>
 <tr class="separator:ga69559de43b47f4a9e2eecc7a56527444"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga674b341ded4e7f8958361d5d4c4e50fe"><td class="memItemLeft" align="right" valign="top">
@@ -1596,7 +1596,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_config_boolean</b>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connect_and_login</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a01143.html">TDSLOGIN</a> *login)</td></tr>
 <tr class="separator:a60ff077fb19ddc91ead939305be9a3bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf48e52482db1642114e721e71850fa27"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_close</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_close</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="separator:gaf48e52482db1642114e721e71850fa27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga36debbaba89377b8b81ae9bd84602b17"><td class="memItemLeft" align="right" valign="top">
 int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_connection_read</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, unsigned char *buf, int buflen)</td></tr>
@@ -1621,7 +1621,7 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a0
 <tr class="memdesc:gab25de0567ac096e8f8e88490eeddf562"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a deallocation request to server. <br /></td></tr>
 <tr class="separator:gab25de0567ac096e8f8e88490eeddf562"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9745bd1ae8a4677e77c48ec6678da7bb"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_cursor_deallocated</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_cursor_deallocated</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor)</td></tr>
 <tr class="separator:ga9745bd1ae8a4677e77c48ec6678da7bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga84615c3327f785292c101e2088028d4f"><td class="memItemLeft" align="right" valign="top">
 TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_cursor_declare</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor, <a class="el" href="a01183.html">TDSPARAMINFO</a> *params, int *send)</td></tr>
@@ -1647,10 +1647,10 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_cursor_update</
 <tr class="memitem:ga883855e6e3793de6684b21db39c756c4"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00560.html#ga883855e6e3793de6684b21db39c756c4">tds_datecrack</a> (TDS_INT datetype, const void *di, <a class="el" href="a00449.html#a3b40b4faf314267146c2005e56eebe7b">TDSDATEREC</a> *dr)</td></tr>
 <tr class="memdesc:ga883855e6e3793de6684b21db39c756c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert from db date format to a structured date format.  <a href="a00560.html#ga883855e6e3793de6684b21db39c756c4">More...</a><br /></td></tr>
 <tr class="separator:ga883855e6e3793de6684b21db39c756c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga57bd0fabe5bcdeb3ef091259b3a7c1fc"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga57bd0fabe5bcdeb3ef091259b3a7c1fc">tds_deferred_cursor_dealloc</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor)</td></tr>
+<tr class="memitem:ga57bd0fabe5bcdeb3ef091259b3a7c1fc"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga57bd0fabe5bcdeb3ef091259b3a7c1fc">tds_deferred_cursor_dealloc</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor)</td></tr>
 <tr class="memdesc:ga57bd0fabe5bcdeb3ef091259b3a7c1fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate cursor on idle.  <a href="a00563.html#ga57bd0fabe5bcdeb3ef091259b3a7c1fc">More...</a><br /></td></tr>
 <tr class="separator:ga57bd0fabe5bcdeb3ef091259b3a7c1fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9f80fdf732b084aef7de7a323261aa61"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga9f80fdf732b084aef7de7a323261aa61">tds_deferred_unprepare</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
+<tr class="memitem:ga9f80fdf732b084aef7de7a323261aa61"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga9f80fdf732b084aef7de7a323261aa61">tds_deferred_unprepare</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
 <tr class="memdesc:ga9f80fdf732b084aef7de7a323261aa61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unprepare dynamic on idle.  <a href="a00563.html#ga9f80fdf732b084aef7de7a323261aa61">More...</a><br /></td></tr>
 <tr class="separator:ga9f80fdf732b084aef7de7a323261aa61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadeb33bf36c71d2acb8c655e8e226ca33"><td class="memItemLeft" align="right" valign="top">
@@ -1667,7 +1667,7 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_disconnect</b> 
 <tr class="memdesc:gafae08056186b143f3ef1399307dc9be7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string from wire and put in a DSTR.  <a href="a00564.html#gafae08056186b143f3ef1399307dc9be7">More...</a><br /></td></tr>
 <tr class="separator:gafae08056186b143f3ef1399307dc9be7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac208dfc9708803e15a3a1fcc631f37f2"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_dynamic_deallocated</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_dynamic_deallocated</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
 <tr class="separator:gac208dfc9708803e15a3a1fcc631f37f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga440f0f469afad1eac4c008979873ccdd"><td class="memItemLeft" align="right" valign="top">
 size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga440f0f469afad1eac4c008979873ccdd">tds_fix_column_size</a> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol)</td></tr>
@@ -1786,7 +1786,7 @@ TDS_USMALLINT&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 <tr class="memdesc:gad38aa5b9547817854ccba1fcc7855861"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an int16 from the server. <br /></td></tr>
 <tr class="separator:gad38aa5b9547817854ccba1fcc7855861"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68855f1251759a6b7338635306ab0041"><td class="memItemLeft" align="right" valign="top"><a id="a68855f1251759a6b7338635306ab0041"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a68855f1251759a6b7338635306ab0041">tds_get_varint_size</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, int datatype)</td></tr>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a68855f1251759a6b7338635306ab0041">tds_get_varint_size</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, int datatype)</td></tr>
 <tr class="memdesc:a68855f1251759a6b7338635306ab0041"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="a00449.html#a68855f1251759a6b7338635306ab0041" title="tds_get_varint_size() returns the size of a variable length integer returned in a result string">tds_get_varint_size()</a> returns the size of a variable length integer returned in a result string <br /></td></tr>
 <tr class="separator:a68855f1251759a6b7338635306ab0041"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec3fc9d381c4e9b788a76906ede8c789"><td class="memItemLeft" align="right" valign="top"><a id="aec3fc9d381c4e9b788a76906ede8c789"></a>
@@ -1804,21 +1804,21 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a0056
 <tr class="memitem:ad2f817b3e6a8f30fa0e618f5dd14f7cc"><td class="memItemLeft" align="right" valign="top"><a id="ad2f817b3e6a8f30fa0e618f5dd14f7cc"></a>
 <a class="el" href="a01219.html">TDSAUTHENTICATION</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_gss_get_auth</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds)</td></tr>
 <tr class="separator:ad2f817b3e6a8f30fa0e618f5dd14f7cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a026957dbbd994b48b571a63405f427cd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a026957dbbd994b48b571a63405f427cd">tds_iconv_alloc</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+<tr class="memitem:a026957dbbd994b48b571a63405f427cd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a026957dbbd994b48b571a63405f427cd">tds_iconv_alloc</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="memdesc:a026957dbbd994b48b571a63405f427cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate iconv stuff.  <a href="a00449.html#a026957dbbd994b48b571a63405f427cd">More...</a><br /></td></tr>
 <tr class="separator:a026957dbbd994b48b571a63405f427cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga443693697445c37abcd4b7103b1c47ac"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_close</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_close</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="separator:ga443693697445c37abcd4b7103b1c47ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad161ada50068b9a8a05786cce7b3dc1d"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_free</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_free</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="separator:gad161ada50068b9a8a05786cce7b3dc1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaed775f7fcca42b5c2a53f9508c140259"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="a00983.html">TDSICONV</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#gaed775f7fcca42b5c2a53f9508c140259">tds_iconv_from_collate</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, TDS_UCHAR collate[5])</td></tr>
+<a class="el" href="a00983.html">TDSICONV</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#gaed775f7fcca42b5c2a53f9508c140259">tds_iconv_from_collate</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, TDS_UCHAR collate[5])</td></tr>
 <tr class="memdesc:gaed775f7fcca42b5c2a53f9508c140259"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get iconv information from a LCID (to support different column encoding under MSSQL2K) <br /></td></tr>
 <tr class="separator:gaed775f7fcca42b5c2a53f9508c140259"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1e4275b3494b59d8b6c642955bb72106"><td class="memItemLeft" align="right" valign="top">
-TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_open</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, const char *charset, int use_utf16)</td></tr>
+TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_open</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, const char *charset, int use_utf16)</td></tr>
 <tr class="separator:ga1e4275b3494b59d8b6c642955bb72106"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2ef389ac3b0cddec76bf8f1c0951bc9c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a01143.html">TDSLOGIN</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00562.html#ga2ef389ac3b0cddec76bf8f1c0951bc9c">tds_init_login</a> (<a class="el" href="a01143.html">TDSLOGIN</a> *login, <a class="el" href="a01151.html">TDSLOCALE</a> *locale)</td></tr>
 <tr class="memdesc:ga2ef389ac3b0cddec76bf8f1c0951bc9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize login structure with locale information and other stuff for connection.  <a href="a00562.html#ga2ef389ac3b0cddec76bf8f1c0951bc9c">More...</a><br /></td></tr>
@@ -1826,7 +1826,7 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_open</b> 
 <tr class="memitem:gad909967e04a0929c511e9d78527221b8"><td class="memItemLeft" align="right" valign="top">
 int&#160;</td><td class="memItemRight" valign="bottom"><b>tds_init_write_buf</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds)</td></tr>
 <tr class="separator:gad909967e04a0929c511e9d78527221b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga595fe391e60a71bd98ffd53b4c015e44"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00565.html#ga595fe391e60a71bd98ffd53b4c015e44">tds_lookup_dynamic</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, const char *id)</td></tr>
+<tr class="memitem:ga595fe391e60a71bd98ffd53b4c015e44"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00565.html#ga595fe391e60a71bd98ffd53b4c015e44">tds_lookup_dynamic</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, const char *id)</td></tr>
 <tr class="memdesc:ga595fe391e60a71bd98ffd53b4c015e44"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds a dynamic given string id.  <a href="a00565.html#ga595fe391e60a71bd98ffd53b4c015e44">More...</a><br /></td></tr>
 <tr class="separator:ga595fe391e60a71bd98ffd53b4c015e44"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa17936ef93e1c68833c4aab769bd90d9"><td class="memItemLeft" align="right" valign="top">struct addrinfo *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00559.html#gaa17936ef93e1c68833c4aab769bd90d9">tds_lookup_host</a> (const char *servername)</td></tr>
@@ -1850,7 +1850,7 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_multiple_init</
 <tr class="memitem:ga2831db8f158c9bd31dfac08f63adffa5"><td class="memItemLeft" align="right" valign="top">
 TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_multiple_query</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a01211.html">TDSMULTIPLE</a> *multiple, const char *query, <a class="el" href="a01183.html">TDSPARAMINFO</a> *params)</td></tr>
 <tr class="separator:ga2831db8f158c9bd31dfac08f63adffa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga05ac7bab753d19b6ba1ffc7505d8fcd0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga05ac7bab753d19b6ba1ffc7505d8fcd0">tds_needs_unprepare</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
+<tr class="memitem:ga05ac7bab753d19b6ba1ffc7505d8fcd0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga05ac7bab753d19b6ba1ffc7505d8fcd0">tds_needs_unprepare</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
 <tr class="memdesc:ga05ac7bab753d19b6ba1ffc7505d8fcd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if dynamic request must be unprepared.  <a href="a00563.html#ga05ac7bab753d19b6ba1ffc7505d8fcd0">More...</a><br /></td></tr>
 <tr class="separator:ga05ac7bab753d19b6ba1ffc7505d8fcd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6455b2991afbf7da90270787f2059d31"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga6455b2991afbf7da90270787f2059d31">tds_next_placeholder</a> (const char *start)</td></tr>
@@ -1977,7 +1977,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_bulk</b> (<a 
 <tr class="memitem:ae1342782a8c2497e3d6245a794c6f2be"><td class="memItemLeft" align="right" valign="top"><a id="ae1342782a8c2497e3d6245a794c6f2be"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_client_charset</b> (<a class="el" href="a01143.html">TDSLOGIN</a> *<a class="el" href="a01143.html">tds_login</a>, const char *charset) TDS_WUR</td></tr>
 <tr class="separator:ae1342782a8c2497e3d6245a794c6f2be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31604382d8b77257aad203f409155a29"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a31604382d8b77257aad203f409155a29">tds_set_column_type</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, TDS_SERVER_TYPE type)</td></tr>
+<tr class="memitem:a31604382d8b77257aad203f409155a29"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a31604382d8b77257aad203f409155a29">tds_set_column_type</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, TDS_SERVER_TYPE type)</td></tr>
 <tr class="memdesc:a31604382d8b77257aad203f409155a29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set type of column initializing all dependency.  <a href="a00449.html#a31604382d8b77257aad203f409155a29">More...</a><br /></td></tr>
 <tr class="separator:a31604382d8b77257aad203f409155a29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae8b7db85af16701fc0604eb117cbd4e4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#gae8b7db85af16701fc0604eb117cbd4e4">tds_set_cur_dyn</a> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
@@ -2004,7 +2004,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_library</b> (
 <tr class="memitem:a6ca7d1c14ca8b9bb880376417c992b5f"><td class="memItemLeft" align="right" valign="top"><a id="a6ca7d1c14ca8b9bb880376417c992b5f"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_set_packet</b> (<a class="el" href="a01143.html">TDSLOGIN</a> *<a class="el" href="a01143.html">tds_login</a>, int packet_size)</td></tr>
 <tr class="separator:a6ca7d1c14ca8b9bb880376417c992b5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86768d86059c5addf9a3f89edb1ef44e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a86768d86059c5addf9a3f89edb1ef44e">tds_set_param_type</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, TDS_SERVER_TYPE type)</td></tr>
+<tr class="memitem:a86768d86059c5addf9a3f89edb1ef44e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00449.html#a86768d86059c5addf9a3f89edb1ef44e">tds_set_param_type</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, TDS_SERVER_TYPE type)</td></tr>
 <tr class="memdesc:a86768d86059c5addf9a3f89edb1ef44e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set type of column initializing all dependency.  <a href="a00449.html#a86768d86059c5addf9a3f89edb1ef44e">More...</a><br /></td></tr>
 <tr class="separator:a86768d86059c5addf9a3f89edb1ef44e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb7521cdfbed98f1f45bdfa30f54be88"><td class="memItemLeft" align="right" valign="top"><a id="adb7521cdfbed98f1f45bdfa30f54be88"></a>
@@ -2038,7 +2038,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_socket_flush</b> 
 <tr class="memdesc:ga2a7429ff031f77023d1bf31339a266db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set socket to non-blocking.  <a href="a00564.html#ga2a7429ff031f77023d1bf31339a266db">More...</a><br /></td></tr>
 <tr class="separator:ga2a7429ff031f77023d1bf31339a266db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5252425e5f0ba60e3e10a0e26b88e254"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_srv_charset_changed</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, const char *charset)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_srv_charset_changed</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, const char *charset)</td></tr>
 <tr class="separator:ga5252425e5f0ba60e3e10a0e26b88e254"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0da385231bfa3dc49377e1fb2bea2c07"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga0da385231bfa3dc49377e1fb2bea2c07">tds_start_query</a> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, unsigned char packet_type)</td></tr>
 <tr class="memdesc:ga0da385231bfa3dc49377e1fb2bea2c07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start query packet of a given type.  <a href="a00563.html#ga0da385231bfa3dc49377e1fb2bea2c07">More...</a><br /></td></tr>
@@ -2225,7 +2225,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a0044
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">x</td><td>)</td>
-          <td>&#160;&#160;&#160;(((x)-&gt;conn-&gt;product_version &amp; 0x80000000u)!=0)</td>
+          <td>&#160;&#160;&#160;(((x)-&gt;request-&gt;product_version &amp; 0x80000000u)!=0)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2246,7 +2246,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a0044
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">x</td><td>)</td>
-          <td>&#160;&#160;&#160;(!((x)-&gt;conn-&gt;product_version &amp; 0x80000000u))</td>
+          <td>&#160;&#160;&#160;(!((x)-&gt;request-&gt;product_version &amp; 0x80000000u))</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2816,7 +2816,7 @@ Here is the caller graph for this function:</div>
           <td class="memname">int tds_iconv_alloc </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em></td><td>)</td>
+          <td class="paramname"><em>request</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -2866,7 +2866,7 @@ Here is the caller graph for this function:</div>
           <td class="memname">void tds_set_column_type </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -2909,7 +2909,7 @@ Here is the caller graph for this function:</div>
           <td class="memname">void tds_set_param_type </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

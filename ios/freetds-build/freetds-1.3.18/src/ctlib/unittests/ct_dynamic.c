@@ -20,7 +20,7 @@ static CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connecti
 static int verbose = 0;
 
 static CS_CONTEXT *ctx;
-static CS_CONNECTION *conn;
+static CS_CONNECTION *request;
 static CS_COMMAND *cmd;
 static CS_COMMAND *cmd2;
 
@@ -36,7 +36,7 @@ cleanup(void)
 	if (cmd2)
 		ct_cmd_drop(cmd2);
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		exit(1);
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 
 	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
 
-	ret = ct_cmd_alloc(conn, &cmd2);
+	ret = ct_cmd_alloc(request, &cmd2);
 	chk(ret == CS_SUCCEED, "cmd2_alloc failed\n");
 
 	/* do not test error */

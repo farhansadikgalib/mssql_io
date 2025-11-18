@@ -33,7 +33,7 @@ int
 main(int argc, char *argv[])
 {
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
+	CS_CONNECTION *request;
 	CS_COMMAND *cmd;
 	int verbose = 0;
 	CS_RETCODE ret;
@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	CS_INT rows_read;
 
 	printf("%s: submit a not existing stored procedure\n", __FILE__);
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
@@ -122,7 +122,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;

@@ -25,11 +25,11 @@ extern int cslibmsg_cb_invoked;
 extern int clientmsg_cb_invoked;
 extern int servermsg_cb_invoked;
 
-CS_RETCODE try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
-CS_RETCODE try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, 
+CS_RETCODE try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** request, CS_COMMAND ** cmd, int verbose);
+CS_RETCODE try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** request, CS_COMMAND ** cmd,
 				    int verbose);
 
-CS_RETCODE try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * conn, CS_COMMAND * cmd, int verbose);
+CS_RETCODE try_ctlogout(CS_CONTEXT * ctx, CS_CONNECTION * request, CS_COMMAND * cmd, int verbose);
 
 CS_RETCODE run_command(CS_COMMAND * cmd, const char *sql);
 CS_RETCODE cslibmsg_cb(CS_CONTEXT * connection, CS_CLIENTMSG * errmsg);

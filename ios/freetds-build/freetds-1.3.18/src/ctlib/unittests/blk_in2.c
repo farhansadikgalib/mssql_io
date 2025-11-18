@@ -59,7 +59,7 @@ int
 main(int argc, char **argv)
 {
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
+	CS_CONNECTION *request;
 	CS_COMMAND *cmd;
 	CS_BLKDESC *blkdesc;
 	int verbose = 0;
@@ -74,7 +74,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
@@ -91,7 +91,7 @@ main(int argc, char **argv)
 	if (ret != CS_SUCCEED)
 		return 1;
 
-	ret = blk_alloc(conn, BLK_VERSION_100, &blkdesc);
+	ret = blk_alloc(request, BLK_VERSION_100, &blkdesc);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "blk_alloc() failed\n");
 		return 1;
@@ -102,7 +102,7 @@ main(int argc, char **argv)
 		memset(command, ' ', sizeof(command));
 		memset(command, 'a' + i, (i * 37) % 11);
 
-		ret = hoge_blkin(conn, blkdesc, table_name, command);
+		ret = hoge_blkin(request, blkdesc, table_name, command);
 		if (ret != CS_SUCCEED)
 			return 1;
 	}
@@ -113,7 +113,7 @@ main(int argc, char **argv)
 
 	printf("done\n");
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;

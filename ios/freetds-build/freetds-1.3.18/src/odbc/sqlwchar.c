@@ -104,10 +104,10 @@ void sqlwstr_free(SQLWSTRBUF *bufs)
 #error SIZEOF_SQLWCHAR not supported !!
 #endif
 
-int odbc_get_wide_canonic(TDSCONNECTION *conn)
+int odbc_get_wide_canonic(TDSCONNECTION *request)
 {
 #if SIZEOF_SQLWCHAR == 2
-	if (conn->char_convs[client2ucs2]->to.charset.canonic == TDS_CHARSET_UTF_16LE)
+	if (request->char_convs[client2ucs2]->to.charset.canonic == TDS_CHARSET_UTF_16LE)
 		return ODBC_WIDE_CANONIC_UTF;
 #endif
 	return ODBC_WIDE_CANONIC;

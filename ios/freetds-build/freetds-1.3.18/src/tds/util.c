@@ -135,7 +135,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 			freeze.size_len = 0;
 			tds_freeze_abort(&freeze);
 
-			tds_connection_close(tds->conn);
+			tds_connection_close(tds->request);
 		}
 		break;
 	case TDS_WRITING:

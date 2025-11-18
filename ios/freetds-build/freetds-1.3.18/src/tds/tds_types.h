@@ -54,7 +54,7 @@ tds_get_size_by_type(TDS_SERVER_TYPE servertype)
  * returned in a result string
  */
 int
-tds_get_varint_size(TDSCONNECTION * conn, int datatype)
+tds_get_varint_size(TDSCONNECTION * request, int datatype)
 {
 	switch (datatype) {
 	case SYBBIT:
@@ -74,7 +74,7 @@ tds_get_varint_size(TDSCONNECTION * conn, int datatype)
 		return 4;
 	}
 
-	if (IS_TDS7_PLUS(conn)) {
+	if (IS_TDS7_PLUS(request)) {
 		switch (datatype) {
 		case SYBINT8:
 			return 0;
@@ -92,7 +92,7 @@ tds_get_varint_size(TDSCONNECTION * conn, int datatype)
 		case SYBMSXML:
 			return 8;
 		}
-	} else if (IS_TDS50(conn)) {
+	} else if (IS_TDS50(request)) {
 		switch (datatype) {
 		case SYB5INT8:
 		case SYBDATE:

@@ -43,26 +43,26 @@
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 TDSRET tds_ssl_init(TDSSOCKET *tds);
-void tds_ssl_deinit(TDSCONNECTION *conn);
+void tds_ssl_deinit(TDSCONNECTION *request);
 
 #  ifdef HAVE_GNUTLS
 
 static inline int
-tds_ssl_pending(TDSCONNECTION *conn)
+tds_ssl_pending(TDSCONNECTION *request)
 {
-	return gnutls_record_check_pending((gnutls_session_t) conn->tls_session);
+	return gnutls_record_check_pending((gnutls_session_t) request->tls_session);
 }
 
 static inline int
-tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+tds_ssl_read(TDSCONNECTION *request, unsigned char *buf, int buflen)
 {
-	return gnutls_record_recv((gnutls_session_t) conn->tls_session, buf, buflen);
+	return gnutls_record_recv((gnutls_session_t) request->tls_session, buf, buflen);
 }
 
 static inline int
-tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
+tds_ssl_write(TDSCONNECTION *request, const unsigned char *buf, int buflen)
 {
-	return gnutls_record_send((gnutls_session_t) conn->tls_session, buf, buflen);
+	return gnutls_record_send((gnutls_session_t) request->tls_session, buf, buflen);
 }
 #  else
 
@@ -72,21 +72,21 @@ tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
 #endif
 
 static inline int
-tds_ssl_pending(TDSCONNECTION *conn)
+tds_ssl_pending(TDSCONNECTION *request)
 {
-	return SSL_pending((SSL *) conn->tls_session);
+	return SSL_pending((SSL *) request->tls_session);
 }
 
 static inline int
-tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+tds_ssl_read(TDSCONNECTION *request, unsigned char *buf, int buflen)
 {
-	return SSL_read((SSL *) conn->tls_session, buf, buflen);
+	return SSL_read((SSL *) request->tls_session, buf, buflen);
 }
 
 static inline int
-tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
+tds_ssl_write(TDSCONNECTION *request, const unsigned char *buf, int buflen)
 {
-	return SSL_write((SSL *) conn->tls_session, buf, buflen);
+	return SSL_write((SSL *) request->tls_session, buf, buflen);
 }
 #  endif
 #else
@@ -97,24 +97,24 @@ tds_ssl_init(TDSSOCKET *tds)
 }
 
 static inline void
-tds_ssl_deinit(TDSCONNECTION *conn)
+tds_ssl_deinit(TDSCONNECTION *request)
 {
 }
 
 static inline int
-tds_ssl_pending(TDSCONNECTION *conn)
+tds_ssl_pending(TDSCONNECTION *request)
 {
 	return 0;
 }
 
 static inline int
-tds_ssl_read(TDSCONNECTION *conn, unsigned char *buf, int buflen)
+tds_ssl_read(TDSCONNECTION *request, unsigned char *buf, int buflen)
 {
 	return -1;
 }
 
 static inline int
-tds_ssl_write(TDSCONNECTION *conn, const unsigned char *buf, int buflen)
+tds_ssl_write(TDSCONNECTION *request, const unsigned char *buf, int buflen)
 {
 	return -1;
 }

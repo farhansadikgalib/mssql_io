@@ -56,7 +56,7 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + newlen + newvalue + oldlen + oldvalue  */
 		/* FIXME ucs2 */
-		totsize = (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(oldvalue) + strlen(newvalue)) + 3;
+		totsize = (IS_TDS7_PLUS(tds->request) ? 2 : 1) * (strlen(oldvalue) + strlen(newvalue)) + 3;
 		tds_put_smallint(tds, totsize);
 		tds_put_byte(tds, type);
 		tds_put_byte(tds, strlen(newvalue));
@@ -127,8 +127,8 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 		+ 1		/* msg state */
 		+ 1		/* severity  */
 		/* FIXME ucs2 */
-		+ 4 + (IS_TDS7_PLUS(tds->conn) ? 2 : 1) * (strlen(msgtext) + strlen(srvname) + len)
-		+ (IS_TDS72_PLUS(tds->conn) ? 4 : 2);	/* line number */
+		+ 4 + (IS_TDS7_PLUS(tds->request) ? 2 : 1) * (strlen(msgtext) + strlen(srvname) + len)
+		+ (IS_TDS72_PLUS(tds->request) ? 4 : 2);	/* line number */
 	tds_put_smallint(tds, msgsz);
 	tds_put_int(tds, msgno);
 	tds_put_byte(tds, msgstate);
@@ -146,7 +146,7 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	} else {
 		tds_put_byte(tds, 0);
 	}
-	if (IS_TDS72_PLUS(tds->conn))
+	if (IS_TDS72_PLUS(tds->request))
 		tds_put_int(tds, line);
 	else
 		tds_put_smallint(tds, line);
@@ -164,21 +164,21 @@ tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 	TDS_UINT ui, version;
 
 	tds_put_byte(tds, TDS_LOGINACK_TOKEN);
-	tds_put_smallint(tds, 10 + (IS_TDS7_PLUS(tds->conn)? 2 : 1) * strlen(progname));	/* length of message */
-	if (IS_TDS50(tds->conn)) {
+	tds_put_smallint(tds, 10 + (IS_TDS7_PLUS(tds->request)? 2 : 1) * strlen(progname));	/* length of message */
+	if (IS_TDS50(tds->request)) {
 		tds_put_byte(tds, 5);
 		version = 0x05000000u;
 	} else {
 		tds_put_byte(tds, 1);
 		/* see src/tds/token.c */
-		if (IS_TDS73_PLUS(tds->conn)) {
+		if (IS_TDS73_PLUS(tds->request)) {
 			version = 0x730B0003u;
-		} else if (IS_TDS72_PLUS(tds->conn)) {
+		} else if (IS_TDS72_PLUS(tds->request)) {
 			version = 0x72090002u;
-		} else if (IS_TDS71_PLUS(tds->conn)) {
-			version = tds->conn->tds71rev1 ? 0x07010000u : 0x71000001u;
+		} else if (IS_TDS71_PLUS(tds->request)) {
+			version = tds->request->tds71rev1 ? 0x07010000u : 0x71000001u;
 		} else {
-			version = (TDS_MAJOR(tds->conn) << 24) | (TDS_MINOR(tds->conn) << 16);
+			version = (TDS_MAJOR(tds->request) << 24) | (TDS_MINOR(tds->request) << 16);
 		}
 	}
 	TDS_PUT_A4BE(&ui, version);
@@ -189,7 +189,7 @@ tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 	tds_put_string(tds, progname, strlen(progname));
 
 	/* server version, always big endian */
-	TDS_PUT_A4BE(&ui, tds->conn->product_version & 0x7fffffffu);
+	TDS_PUT_A4BE(&ui, tds->request->product_version & 0x7fffffffu);
 	tds_put_n(tds, &ui, 4);
 }
 
@@ -242,7 +242,7 @@ tds_send_done(TDSSOCKET * tds, int token, TDS_SMALLINT flags, TDS_INT numrows)
 	tds_put_byte(tds, token);
 	tds_put_smallint(tds, flags);
 	tds_put_smallint(tds, 2); /* are these two bytes the transaction status? */
-	if (IS_TDS72_PLUS(tds->conn))
+	if (IS_TDS72_PLUS(tds->request))
 		tds_put_int8(tds, numrows);
 	else
 		tds_put_int(tds, numrows);
@@ -414,7 +414,7 @@ tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
  */
 void tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
-	switch (TDS_MAJOR(tds->conn)) {
+	switch (TDS_MAJOR(tds->request)) {
 	case 4:
 		/*
 		 * TDS4 uses TDS_COLNAME_TOKEN to send column names, and

@@ -1049,7 +1049,7 @@ typedef struct tds_authentication
 	int packet_len;
 	/* TDS_MSG_TOKEN type, for TDS5 */
 	uint16_t msg_type;
-	TDSRET (*free)(TDSCONNECTION* conn, struct tds_authentication * auth);
+	TDSRET (*free)(TDSCONNECTION* request, struct tds_authentication * auth);
 	TDSRET (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
 } TDSAUTHENTICATION;
 
@@ -1162,9 +1162,9 @@ struct tds_connection
 struct tds_socket
 {
 #if ENABLE_ODBC_MARS
-	TDSCONNECTION *conn;
+	TDSCONNECTION *request;
 #else
-	TDSCONNECTION conn[1];
+	TDSCONNECTION request[1];
 #endif
 
 	void *parent;
@@ -1217,7 +1217,7 @@ struct tds_socket
 
 	/**
 	 * Packet we are trying to send to network.
-	 * This field should be protected by conn->list_mtx
+	 * This field should be protected by request->list_mtx
 	 */
 	TDSPACKET *sending_packet;
 	TDS_UINT recv_seq;
@@ -1264,12 +1264,12 @@ struct tds_socket
 	tds_mutex wire_mtx;
 };
 
-#define tds_get_ctx(tds) ((tds)->conn->tds_ctx)
-#define tds_set_ctx(tds, val) do { ((tds)->conn->tds_ctx) = (val); } while(0)
+#define tds_get_ctx(tds) ((tds)->request->tds_ctx)
+#define tds_set_ctx(tds, val) do { ((tds)->request->tds_ctx) = (val); } while(0)
 #define tds_get_parent(tds) ((tds)->parent)
 #define tds_set_parent(tds, val) do { ((tds)->parent) = (val); } while(0)
-#define tds_get_s(tds) ((tds)->conn->s)
-#define tds_set_s(tds, val) do { ((tds)->conn->s) = (val); } while(0)
+#define tds_get_s(tds) ((tds)->request->s)
+#define tds_set_s(tds, val) do { ((tds)->request->s) = (val); } while(0)
 
 
 /* config.c */
@@ -1295,20 +1295,20 @@ TDSLOCALE *tds_get_locale(void);
 TDSRET tds_alloc_row(TDSRESULTINFO * res_info);
 TDSRET tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(unsigned int column_size);
-TDSDYNAMIC *tds_lookup_dynamic(TDSCONNECTION * conn, const char *id);
+TDSDYNAMIC *tds_lookup_dynamic(TDSCONNECTION * request, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
-int tds_get_varint_size(TDSCONNECTION * conn, int datatype);
+int tds_get_varint_size(TDSCONNECTION * request, int datatype);
 TDS_SERVER_TYPE tds_get_cardinal_type(TDS_SERVER_TYPE datatype, int usertype);
 
 
 /* iconv.c */
-TDSRET tds_iconv_open(TDSCONNECTION * conn, const char *charset, int use_utf16);
-void tds_iconv_close(TDSCONNECTION * conn);
-void tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset);
-void tds7_srv_charset_changed(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
-int tds_iconv_alloc(TDSCONNECTION * conn);
-void tds_iconv_free(TDSCONNECTION * conn);
-TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
+TDSRET tds_iconv_open(TDSCONNECTION * request, const char *charset, int use_utf16);
+void tds_iconv_close(TDSCONNECTION * request);
+void tds_srv_charset_changed(TDSCONNECTION * request, const char *charset);
+void tds7_srv_charset_changed(TDSCONNECTION * request, TDS_UCHAR collate[5]);
+int tds_iconv_alloc(TDSCONNECTION * request);
+void tds_iconv_free(TDSCONNECTION * request);
+TDSICONV *tds_iconv_from_collate(TDSCONNECTION * request, TDS_UCHAR collate[5]);
 
 
 /* mem.c */
@@ -1318,7 +1318,7 @@ void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
 void tds_free_param_result(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMESSAGE * message);
-void tds_cursor_deallocated(TDSCONNECTION *conn, TDSCURSOR *cursor);
+void tds_cursor_deallocated(TDSCONNECTION *request, TDSCURSOR *cursor);
 void tds_release_cursor(TDSCURSOR **pcursor);
 void tds_free_bcp_column_data(BCPCOLDATA * coldata);
 TDSRESULTINFO *tds_alloc_results(TDS_USMALLINT num_cols);
@@ -1333,13 +1333,13 @@ void tds_release_cur_dyn(TDSSOCKET * tds)
 {
 	tds_release_dynamic(&tds->cur_dyn);
 }
-void tds_dynamic_deallocated(TDSCONNECTION *conn, TDSDYNAMIC *dyn);
+void tds_dynamic_deallocated(TDSCONNECTION *request, TDSDYNAMIC *dyn);
 void tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
 TDSLOGIN *tds_alloc_login(int use_environment);
-TDSDYNAMIC *tds_alloc_dynamic(TDSCONNECTION * conn, const char *id);
+TDSDYNAMIC *tds_alloc_dynamic(TDSCONNECTION * request, const char *id);
 void tds_free_login(TDSLOGIN * login);
 TDSLOGIN *tds_init_login(TDSLOGIN * login, TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
@@ -1348,7 +1348,7 @@ void tds_free_locale(TDSLOCALE * locale);
 TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
 void tds_free_row(TDSRESULTINFO * res_info, unsigned char *row);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize);
-TDSSOCKET *tds_alloc_additional_socket(TDSCONNECTION *conn);
+TDSSOCKET *tds_alloc_additional_socket(TDSCONNECTION *request);
 void tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info);
 void tds_detach_results(TDSRESULTINFO *info);
 void * tds_realloc(void **pp, size_t new_size);
@@ -1394,8 +1394,8 @@ TDSRET tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSRET tds_send_cancel(TDSSOCKET * tds);
 const char *tds_next_placeholder(const char *start);
 int tds_count_placeholders(const char *query);
-int tds_needs_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn);
-TDSRET tds_deferred_unprepare(TDSCONNECTION * conn, TDSDYNAMIC * dyn);
+int tds_needs_unprepare(TDSCONNECTION * request, TDSDYNAMIC * dyn);
+TDSRET tds_deferred_unprepare(TDSCONNECTION * request, TDSDYNAMIC * dyn);
 TDSRET tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSRET tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDSHEADERS * head);
 TDSRET tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);
@@ -1424,7 +1424,7 @@ TDSRET tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fe
 TDSRET tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_number, TDS_UINT * row_count);
 TDSRET tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
 TDSRET tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
-TDSRET tds_deferred_cursor_dealloc(TDSCONNECTION *conn, TDSCURSOR * cursor);
+TDSRET tds_deferred_cursor_dealloc(TDSCONNECTION *request, TDSCURSOR * cursor);
 TDSRET tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, TDSPARAMINFO * params);
 TDSRET tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor);
 
@@ -1445,8 +1445,8 @@ TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@o
 
 
 /* data.c */
-void tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
-void tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
+void tds_set_param_type(TDSCONNECTION * request, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
+void tds_set_column_type(TDSCONNECTION * request, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 #ifdef WORDS_BIGENDIAN
 void tds_swap_datatype(int coltype, void *b);
 #endif
@@ -1543,7 +1543,7 @@ int tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, i
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
 int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
-void tds_connection_close(TDSCONNECTION *conn);
+void tds_connection_close(TDSCONNECTION *request);
 int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen);
 void tds_socket_flush(TDS_SYS_SOCKET sock);
@@ -1691,10 +1691,10 @@ bool tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 {
 	return (cap->values[sizeof(cap->values)-1-(cap_num>>3)] >> (cap_num&7)) & 1;
 }
-#define tds_capability_has_req(conn, cap) \
-	tds_capability_enabled(&conn->capabilities.types[0], cap)
-#define tds_capability_has_res(conn, cap) \
-	tds_capability_enabled(&conn->capabilities.types[1], cap)
+#define tds_capability_has_req(request, cap) \
+	tds_capability_enabled(&request->capabilities.types[0], cap)
+#define tds_capability_has_res(request, cap) \
+	tds_capability_enabled(&request->capabilities.types[1], cap)
 
 #define IS_TDS42(x) (x->tds_version==0x402)
 #define IS_TDS46(x) (x->tds_version==0x406)
@@ -1717,9 +1717,9 @@ bool tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 #define IS_TDSDEAD(x) (((x) == NULL) || (x)->state == TDS_DEAD)
 
 /** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDSSOCKET*. */
-#define TDS_IS_SYBASE(x) (!((x)->conn->product_version & 0x80000000u))
+#define TDS_IS_SYBASE(x) (!((x)->request->product_version & 0x80000000u))
 /** Check if product is Microsft SQL Server. x should be a TDSSOCKET*. */
-#define TDS_IS_MSSQL(x) (((x)->conn->product_version & 0x80000000u)!=0)
+#define TDS_IS_MSSQL(x) (((x)->request->product_version & 0x80000000u)!=0)
 
 /** Calc a version number for mssql. Use with TDS_MS_VER(7,0,842).
  * For test for a range of version you can use check like

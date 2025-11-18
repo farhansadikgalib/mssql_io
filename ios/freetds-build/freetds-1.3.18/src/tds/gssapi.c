@@ -90,7 +90,7 @@ typedef struct tds_gss_auth
 } TDSGSSAUTH;
 
 static TDSRET
-tds_gss_free(TDSCONNECTION * conn, struct tds_authentication * tds_auth)
+tds_gss_free(TDSCONNECTION * request, struct tds_authentication * tds_auth)
 {
 	TDSGSSAUTH *auth = (TDSGSSAUTH *) tds_auth;
 	OM_uint32 min_stat;
@@ -255,12 +255,12 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		return NULL;
 
 	auth->tds_auth.free = tds_gss_free;
-	auth->tds_auth.handle_next = IS_TDS50(tds->conn) ? tds5_gss_handle_next : tds7_gss_handle_next;
+	auth->tds_auth.handle_next = IS_TDS50(tds->request) ? tds5_gss_handle_next : tds7_gss_handle_next;
 	auth->gss_context = GSS_C_NO_CONTEXT;
 	auth->last_stat = GSS_S_COMPLETE;
 
 	server_name = tds_dstr_cstr(&tds->login->server_host_name);
-	if (IS_TDS7_PLUS(tds->conn) && strchr(server_name, '.') == NULL) {
+	if (IS_TDS7_PLUS(tds->request) && strchr(server_name, '.') == NULL) {
 		struct addrinfo hints;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
@@ -273,7 +273,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 	if (!tds_dstr_isempty(&tds->login->server_spn)) {
 		auth->sname = strdup(tds_dstr_cstr(&tds->login->server_spn));
-	} else if (IS_TDS7_PLUS(tds->conn)) {
+	} else if (IS_TDS7_PLUS(tds->request)) {
 		if (tds_dstr_isempty(&tds->login->server_realm_name)) {
 			len = asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port);
 		} else {
@@ -293,7 +293,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	if (addrs)
 		freeaddrinfo(addrs);
 	if (len < 0 || auth->sname == NULL) {
-		tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
+		tds_gss_free(tds->request, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
 	tdsdump_log(TDS_DBG_NETWORK, "using kerberos name %s\n", auth->sname);
@@ -310,7 +310,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	case GSS_S_COMPLETE: 
 		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_COMPLETE: gss_import_name completed successfully.\n");
 		if (TDS_FAILED(tds_gss_continue(tds, auth, GSS_C_NO_BUFFER))) {
-			tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
+			tds_gss_free(tds->request, (TDSAUTHENTICATION *) auth);
 			return NULL;
 		}
 		break;
@@ -329,7 +329,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	}
 
 	if (GSS_ERROR(maj_stat)) {
-		tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
+		tds_gss_free(tds->request, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
 
@@ -387,7 +387,7 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	
 	if (tds->login->gssapi_use_delegation)
 		gssapi_flags |= GSS_C_DELEG_FLAG;
-	if (tds->login->mutual_authentication || IS_TDS7_PLUS(tds->conn))
+	if (tds->login->mutual_authentication || IS_TDS7_PLUS(tds->request))
 		gssapi_flags |= GSS_C_MUTUAL_FLAG;
 
 	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, 
@@ -478,7 +478,7 @@ tds5_gss_send(TDSSOCKET *tds)
 {
 	uint32_t flags = TDS5_SEC_NETWORK_AUTHENTICATION;
 
-	if (!tds->conn->authentication)
+	if (!tds->request->authentication)
 		return TDS_FAIL;
 
 	if (tds->login) {
@@ -531,8 +531,8 @@ tds5_gss_send(TDSSOCKET *tds)
 	tds_put_tinyint(tds, 12);
 	tds_put_n(tds, "\x06\x0a\x2b\x06\x01\x04\x01\x87\x01\x04\x06\x06", 12); /* KRB5 Sybase OID */
 
-	tds_put_int(tds, tds->conn->authentication->packet_len);
-	tds_put_n(tds, tds->conn->authentication->packet, tds->conn->authentication->packet_len);
+	tds_put_int(tds, tds->request->authentication->packet_len);
+	tds_put_n(tds, tds->request->authentication->packet, tds->request->authentication->packet_len);
 
 	tds_put_tinyint(tds, 4);
 	tds_put_int(tds, flags);

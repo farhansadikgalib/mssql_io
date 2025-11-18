@@ -118,7 +118,7 @@ $(function() {
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;}</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="keywordtype">int</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="a00449.html#a68855f1251759a6b7338635306ab0041">   57</a></span>&#160;<a class="code" href="a00449.html#a68855f1251759a6b7338635306ab0041">tds_get_varint_size</a>(<a class="code" href="a01231.html">TDSCONNECTION</a> * conn, <span class="keywordtype">int</span> datatype)</div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="a00449.html#a68855f1251759a6b7338635306ab0041">   57</a></span>&#160;<a class="code" href="a00449.html#a68855f1251759a6b7338635306ab0041">tds_get_varint_size</a>(<a class="code" href="a01231.html">TDSCONNECTION</a> * request, <span class="keywordtype">int</span> datatype)</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;{</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keywordflow">switch</span> (datatype) {</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="keywordflow">case</span> SYBBIT:</div>
@@ -138,7 +138,7 @@ $(function() {
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        <span class="keywordflow">return</span> 4;</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    }</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordflow">if</span> (IS_TDS7_PLUS(conn)) {</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keywordflow">if</span> (IS_TDS7_PLUS(request)) {</div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        <span class="keywordflow">switch</span> (datatype) {</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        <span class="keywordflow">case</span> SYBINT8:</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;            <span class="keywordflow">return</span> 0;</div>
@@ -156,7 +156,7 @@ $(function() {
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        <span class="keywordflow">case</span> SYBMSXML:</div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;            <span class="keywordflow">return</span> 8;</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        }</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_TDS50(conn)) {</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_TDS50(request)) {</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        <span class="keywordflow">switch</span> (datatype) {</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;        <span class="keywordflow">case</span> SYB5INT8:</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;        <span class="keywordflow">case</span> SYBDATE:</div>
@@ -1047,7 +1047,7 @@ $(function() {
 <div class="ttc" id="aa01223_html_aa9a66245e3c629a07111067cd1fdd0d4"><div class="ttname"><a href="a01223.html#aa9a66245e3c629a07111067cd1fdd0d4">tds_packet::data_len</a></div><div class="ttdeci">unsigned data_len</div><div class="ttdoc">data length, this does not account SMP header, only TDS part</div><div class="ttdef"><b>Definition:</b> tds.h:1071</div></div>
 <div class="ttc" id="aa01243_html_ae857ba89e4d2b249da64e0e7287da962"><div class="ttname"><a href="a01243.html#ae857ba89e4d2b249da64e0e7287da962">tds_freeze::size_len</a></div><div class="ttdeci">unsigned size_len</div><div class="ttdoc">length size (0, 1, 2 or 4)</div><div class="ttdef"><b>Definition:</b> tds.h:1579</div></div>
 <div class="ttc" id="aa01207_html_ad3fedfbec2ba0db4a64b82779d95a0c5"><div class="ttname"><a href="a01207.html#ad3fedfbec2ba0db4a64b82779d95a0c5">tds_dynamic::emulated</a></div><div class="ttdeci">TDS_TINYINT emulated</div><div class="ttdoc">this dynamic query cannot be prepared so libTDS have to construct a simple query.</div><div class="ttdef"><b>Definition:</b> tds.h:993</div></div>
-<div class="ttc" id="aa00449_html_a68855f1251759a6b7338635306ab0041"><div class="ttname"><a href="a00449.html#a68855f1251759a6b7338635306ab0041">tds_get_varint_size</a></div><div class="ttdeci">int tds_get_varint_size(TDSCONNECTION *conn, int datatype)</div><div class="ttdoc">tds_get_varint_size() returns the size of a variable length integer returned in a result string</div><div class="ttdef"><b>Definition:</b> tds_types.h:57</div></div>
+<div class="ttc" id="aa00449_html_a68855f1251759a6b7338635306ab0041"><div class="ttname"><a href="a00449.html#a68855f1251759a6b7338635306ab0041">tds_get_varint_size</a></div><div class="ttdeci">int tds_get_varint_size(TDSCONNECTION *request, int datatype)</div><div class="ttdoc">tds_get_varint_size() returns the size of a variable length integer returned in a result string</div><div class="ttdef"><b>Definition:</b> tds_types.h:57</div></div>
 <div class="ttc" id="aa01207_html_adba427a655336d0b128cdec36544464b"><div class="ttname"><a href="a01207.html#adba427a655336d0b128cdec36544464b">tds_dynamic::params</a></div><div class="ttdeci">TDSPARAMINFO * params</div><div class="ttdoc">query parameters.</div><div class="ttdef"><b>Definition:</b> tds.h:1007</div></div>
 <div class="ttc" id="aa01075_html"><div class="ttname"><a href="a01075.html">TDS72_SMP_HEADER</a></div><div class="ttdoc">TDS 7.2 SMP packet header.</div><div class="ttdef"><b>Definition:</b> proto.h:361</div></div>
 <div class="ttc" id="aa01175_html"><div class="ttname"><a href="a01175.html">tds_column</a></div><div class="ttdoc">Metadata about columns in regular and compute rows.</div><div class="ttdef"><b>Definition:</b> tds.h:689</div></div>

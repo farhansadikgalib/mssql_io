@@ -13,7 +13,7 @@ int
 main(int argc, char *argv[])
 {
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
+	CS_CONNECTION *request;
 	CS_COMMAND *cmd;
 	int verbose = 0;
 	CS_RETCODE ret;
@@ -24,27 +24,27 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
 	}
 
-	if (ct_diag(conn, CS_INIT, CS_UNUSED, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_diag(request, CS_INIT, CS_UNUSED, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_diag(CS_INIT) failed\n");
 		return 1;
 	}
 
 	totMsgs = 4;
 
-	if (ct_diag(conn, CS_MSGLIMIT, CS_SERVERMSG_TYPE, CS_UNUSED, &totMsgs) != CS_SUCCEED) {
+	if (ct_diag(request, CS_MSGLIMIT, CS_SERVERMSG_TYPE, CS_UNUSED, &totMsgs) != CS_SUCCEED) {
 		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
 		return 1;
 	}
 
 	printf("Maximum message limit is set to %d.\n", totMsgs);
 
-	if (ct_diag(conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
+	if (ct_diag(request, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
 		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
 		return 1;
 	}
@@ -53,21 +53,21 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < num_msgs; i++) {
 
-		if (ct_diag(conn, CS_GET, CS_SERVERMSG_TYPE, i + 1, &server_message) != CS_SUCCEED) {
+		if (ct_diag(request, CS_GET, CS_SERVERMSG_TYPE, i + 1, &server_message) != CS_SUCCEED) {
 			fprintf(stderr, "cs_diag(CS_GET) failed\n");
 			return 1;
 		}
 
-		servermsg_cb(ctx, conn, &server_message);
+		servermsg_cb(ctx, request, &server_message);
 
 	}
 
-	if (ct_diag(conn, CS_CLEAR, CS_SERVERMSG_TYPE, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_diag(request, CS_CLEAR, CS_SERVERMSG_TYPE, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "cs_diag(CS_CLEAR) failed\n");
 		return 1;
 	}
 
-	if (ct_diag(conn, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
+	if (ct_diag(request, CS_STATUS, CS_SERVERMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
 		fprintf(stderr, "cs_diag(CS_STATUS) failed\n");
 		return 1;
 	}
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;

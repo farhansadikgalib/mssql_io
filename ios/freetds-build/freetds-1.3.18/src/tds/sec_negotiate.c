@@ -65,7 +65,7 @@ typedef struct tds5_negotiate
 } TDS5NEGOTIATE;
 
 static TDSRET
-tds5_negotiate_free(TDSCONNECTION * conn, TDSAUTHENTICATION * tds_auth)
+tds5_negotiate_free(TDSCONNECTION * request, TDSAUTHENTICATION * tds_auth)
 {
 	TDS5NEGOTIATE *auth = (TDS5NEGOTIATE *) tds_auth;
 
@@ -150,8 +150,8 @@ tds5_negotiate_handle_next(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth, size_t
 	rc = tds_flush_packet(tds);
 
 error:
-	tds5_negotiate_free(tds->conn, tds_auth);
-	tds->conn->authentication = NULL;
+	tds5_negotiate_free(tds->request, tds_auth);
+	tds->request->authentication = NULL;
 
 	return rc;
 }

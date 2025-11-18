@@ -181,14 +181,14 @@ MSSQL_EXPORT int64_t mssql_connect(
     }
 
     // Create connection structure
-    MssqlConnection* conn = new MssqlConnection();
-    conn->dbproc = dbproc;
-    conn->host = host;
-    conn->database = database;
-    conn->port = port;
+    MssqlConnection* request = new MssqlConnection();
+    request->dbproc = dbproc;
+    request->host = host;
+    request->database = database;
+    request->port = port;
 
     int64_t conn_id = g_next_connection_id++;
-    g_connections[conn_id] = conn;
+    g_connections[conn_id] = request;
 
     return conn_id;
 }
@@ -200,11 +200,11 @@ MSSQL_EXPORT int32_t mssql_disconnect(int64_t connection_handle) {
         return -1;
     }
 
-    MssqlConnection* conn = it->second;
-    if (conn->dbproc) {
-        dbclose(conn->dbproc);
+    MssqlConnection* request = it->second;
+    if (request->dbproc) {
+        dbclose(request->dbproc);
     }
-    delete conn;
+    delete request;
     g_connections.erase(it);
 
     return 0;
@@ -220,16 +220,16 @@ MSSQL_EXPORT const char* mssql_execute_query(
         return alloc_string("{\"columns\":[],\"rows\":[],\"affected\":0}");
     }
 
-    MssqlConnection* conn = it->second;
-    DBPROCESS* dbproc = conn->dbproc;
+    MssqlConnection* request = it->second;
+    DBPROCESS* dbproc = request->dbproc;
 
     if (dbcmd(dbproc, query) == FAIL) {
-        conn->last_error = "Failed to set query command";
+        request->last_error = "Failed to set query command";
         return alloc_string("{\"columns\":[],\"rows\":[],\"affected\":0}");
     }
 
     if (dbsqlexec(dbproc) == FAIL) {
-        conn->last_error = "Failed to execute query";
+        request->last_error = "Failed to execute query";
         return alloc_string("{\"columns\":[],\"rows\":[],\"affected\":0}");
     }
 
@@ -349,16 +349,16 @@ MSSQL_EXPORT int32_t mssql_execute_write(
         return -1;
     }
 
-    MssqlConnection* conn = it->second;
-    DBPROCESS* dbproc = conn->dbproc;
+    MssqlConnection* request = it->second;
+    DBPROCESS* dbproc = request->dbproc;
 
     if (dbcmd(dbproc, query) == FAIL) {
-        conn->last_error = "Failed to set command";
+        request->last_error = "Failed to set command";
         return -2;
     }
 
     if (dbsqlexec(dbproc) == FAIL) {
-        conn->last_error = "Failed to execute command";
+        request->last_error = "Failed to execute command";
         return -3;
     }
 
@@ -386,11 +386,11 @@ MSSQL_EXPORT int32_t mssql_begin_transaction(int64_t connection_handle) {
         return -1;
     }
 
-    MssqlConnection* conn = it->second;
+    MssqlConnection* request = it->second;
     if (mssql_execute_write(connection_handle, "BEGIN TRANSACTION") < 0) {
         return -2;
     }
-    conn->in_transaction = true;
+    request->in_transaction = true;
     return 0;
 }
 
@@ -401,11 +401,11 @@ MSSQL_EXPORT int32_t mssql_commit_transaction(int64_t connection_handle) {
         return -1;
     }
 
-    MssqlConnection* conn = it->second;
+    MssqlConnection* request = it->second;
     if (mssql_execute_write(connection_handle, "COMMIT TRANSACTION") < 0) {
         return -2;
     }
-    conn->in_transaction = false;
+    request->in_transaction = false;
     return 0;
 }
 
@@ -416,11 +416,11 @@ MSSQL_EXPORT int32_t mssql_rollback_transaction(int64_t connection_handle) {
         return -1;
     }
 
-    MssqlConnection* conn = it->second;
+    MssqlConnection* request = it->second;
     if (mssql_execute_write(connection_handle, "ROLLBACK TRANSACTION") < 0) {
         return -2;
     }
-    conn->in_transaction = false;
+    request->in_transaction = false;
     return 0;
 }
 
@@ -443,12 +443,12 @@ MSSQL_EXPORT const char* mssql_get_last_error(int64_t connection_handle) {
         return alloc_string("Invalid connection handle");
     }
 
-    MssqlConnection* conn = it->second;
-    if (conn->last_error.empty()) {
+    MssqlConnection* request = it->second;
+    if (request->last_error.empty()) {
         return alloc_string("No error");
     }
 
-    return alloc_string(conn->last_error);
+    return alloc_string(request->last_error);
 }
 
 // Free string

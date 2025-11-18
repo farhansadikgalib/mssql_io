@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static CS_CONNECTION *conn = NULL;
+static CS_CONNECTION *request = NULL;
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
 int
@@ -66,17 +66,17 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
 	}
 
-	ret = ct_con_props(conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
+	ret = ct_con_props(request, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
 	if (ret == CS_SUCCEED) {
 		if (tds_version >= CS_TDS_72) {
 			printf("Protocol TDS7.2+ detected, test not supported\n");
-			try_ctlogout(ctx, conn, cmd, verbose);
+			try_ctlogout(ctx, request, cmd, verbose);
 			return 0;
 		}
 	}
@@ -268,7 +268,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;

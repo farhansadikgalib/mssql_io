@@ -65,8 +65,8 @@ main(int argc, char **argv)
 		exit(1);
 	}
 	dump_login(login);
-	/* tds->conn->tds_version = 0x702; */
-	/* tds->conn->product_version = TDS_MS_VER(10, 0, 6000); */
+	/* tds->request->tds_version = 0x702; */
+	/* tds->request->product_version = TDS_MS_VER(10, 0, 6000); */
 	if (!strcmp(tds_dstr_cstr(&login->user_name), "guest") && !strcmp(tds_dstr_cstr(&login->password), "sybase")) {
 		tds->out_flag = TDS_REPLY;
 		tds_env_change(tds, TDS_ENV_DATABASE, "master", "pubs2");
@@ -78,7 +78,7 @@ main(int argc, char **argv)
 		tds_env_change(tds, TDS_ENV_PACKSIZE, NULL, "512");
 		/* TODO set mssql if tds7+ */
 		tds_send_login_ack(tds, "sql server");
-		if (IS_TDS50(tds->conn))
+		if (IS_TDS50(tds->request))
 			tds_send_capabilities_token(tds);
 		tds_send_done_token(tds, 0, 1);
 	} else {

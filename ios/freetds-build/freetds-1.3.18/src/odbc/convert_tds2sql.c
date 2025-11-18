@@ -72,20 +72,20 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 
 	TDSICONV *conv = curcol->char_conv;
 	if (!conv)
-		conv = tds->conn->char_convs[client2server_chardata];
+		conv = tds->request->char_convs[client2server_chardata];
 	if (desttype == SQL_C_WCHAR) {
-		int charset = odbc_get_wide_canonic(tds->conn);
+		int charset = odbc_get_wide_canonic(tds->request);
 		/* SQL_C_WCHAR, convert to wide encode */
-		conv = tds_iconv_get_info(tds->conn, charset, conv->to.charset.canonic);
+		conv = tds_iconv_get_info(tds->request, charset, conv->to.charset.canonic);
 		if (!conv)
-			conv = tds_iconv_get_info(tds->conn, charset, TDS_CHARSET_ISO_8859_1);
+			conv = tds_iconv_get_info(tds->request, charset, TDS_CHARSET_ISO_8859_1);
 #ifdef ENABLE_ODBC_WIDE
 	} else {
-		conv = tds_iconv_get_info(tds->conn, stmt->dbc->original_charset_num, conv->to.charset.canonic);
+		conv = tds_iconv_get_info(tds->request, stmt->dbc->original_charset_num, conv->to.charset.canonic);
 		if (!conv)
-			conv = tds_iconv_get_info(tds->conn, stmt->dbc->original_charset_num, TDS_CHARSET_ISO_8859_1);
+			conv = tds_iconv_get_info(tds->request, stmt->dbc->original_charset_num, TDS_CHARSET_ISO_8859_1);
 		if (!conv)
-			conv = tds_iconv_get_info(tds->conn, TDS_CHARSET_ISO_8859_1, TDS_CHARSET_ISO_8859_1);
+			conv = tds_iconv_get_info(tds->request, TDS_CHARSET_ISO_8859_1, TDS_CHARSET_ISO_8859_1);
 #endif
 	}
 

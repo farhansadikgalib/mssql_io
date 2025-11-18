@@ -72,11 +72,11 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 		assert(invalid_state);
 	}
 
-	assert(tds->conn);
+	assert(tds->request);
 
 #if ENABLE_ODBC_MARS
-	assert(tds->sid < tds->conn->num_sessions);
-	assert(tds->sid == 0 || tds->conn->mars);
+	assert(tds->sid < tds->request->num_sessions);
+	assert(tds->sid == 0 || tds->request->mars);
 	if (tds->state != TDS_DEAD)
 		assert(!TDS_IS_SOCKET_INVALID(tds_get_s(tds)));
 #else
@@ -85,7 +85,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 #endif
 
 	/* test env */
-	tds_check_env_extra(&tds->conn->env);
+	tds_check_env_extra(&tds->request->env);
 
 	/* test buffers and positions */
 	assert(tds->send_packet != NULL);
@@ -94,11 +94,11 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	tds_check_packet_extra(tds->recv_packet);
 
 #if ENABLE_ODBC_MARS
-	if (tds->conn->send_packets)
-		assert(tds->conn->send_pos <= tds->conn->send_packets->data_len + tds->conn->send_packets->data_start);
-	if (tds->conn->recv_packet)
-		assert(tds->conn->recv_pos <= tds->conn->recv_packet->data_len + tds->conn->recv_packet->data_start);
-	if (tds->conn->mars)
+	if (tds->request->send_packets)
+		assert(tds->request->send_pos <= tds->request->send_packets->data_len + tds->request->send_packets->data_start);
+	if (tds->request->recv_packet)
+		assert(tds->request->recv_pos <= tds->request->recv_packet->data_len + tds->request->recv_packet->data_start);
+	if (tds->request->mars)
 		assert(tds->send_packet->data_start == sizeof(TDS72_SMP_HEADER));
 	else
 		assert(tds->send_packet->data_start == 0);
@@ -134,11 +134,11 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 		tds_check_resultinfo_extra(tds->param_info);
 
 	/* test cursors */
-	for (cur_cursor = tds->conn->cursors; cur_cursor != NULL; cur_cursor = cur_cursor->next)
+	for (cur_cursor = tds->request->cursors; cur_cursor != NULL; cur_cursor = cur_cursor->next)
 		tds_check_cursor_extra(cur_cursor);
 
 	/* test dynamics */
-	for (cur_dyn = tds->conn->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next)
+	for (cur_dyn = tds->request->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next)
 		tds_check_dynamic_extra(cur_dyn);
 
 	/* test tds_ctx */
@@ -184,7 +184,7 @@ void
 tds_check_column_extra(const TDSCOLUMN * column)
 {
 	int size;
-	TDSCONNECTION conn;
+	TDSCONNECTION request;
 	int varint_ok;
 	int column_varint_size;
 
@@ -228,10 +228,10 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	} else if (column->column_type == SYBVARIANT) {
 		assert(column_varint_size == 4);
 	}
-	conn.tds_version = 0x500;
-	varint_ok = varint_ok || tds_get_varint_size(&conn, column->on_server.column_type) == column_varint_size;
-	conn.tds_version = 0x700;
-	varint_ok = varint_ok || tds_get_varint_size(&conn, column->on_server.column_type) == column_varint_size;
+	request.tds_version = 0x500;
+	varint_ok = varint_ok || tds_get_varint_size(&request, column->on_server.column_type) == column_varint_size;
+	request.tds_version = 0x700;
+	varint_ok = varint_ok || tds_get_varint_size(&request, column->on_server.column_type) == column_varint_size;
 	assert(varint_ok);
 
 	assert(!is_numeric_type(column->column_type));

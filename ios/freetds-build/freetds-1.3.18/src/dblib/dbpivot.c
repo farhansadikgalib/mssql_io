@@ -683,7 +683,7 @@ set_result_column(TDSSOCKET * tds, TDSCOLUMN * curcol, const char name[], const 
 	curcol->column_writeable = false;
 	curcol->column_identity = false;
 
-	tds_set_column_type(tds->conn, curcol, pvalue->type);	/* sets "cardinal" type */
+	tds_set_column_type(tds->request, curcol, pvalue->type);	/* sets "cardinal" type */
 
 	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
 

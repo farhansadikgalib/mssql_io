@@ -12,10 +12,10 @@
 /// import 'package:mssql_io/mssql_io.dart';
 /// 
 /// // Get singleton instance
-/// final conn = MssqlConnection.getInstance();
+/// final request = MssqlConnection.getInstance();
 /// 
 /// // Connect to SQL Server
-/// await conn.connect(
+/// await request.connect(
 ///   host: '192.168.1.100',
 ///   port: 1433,
 ///   databaseName: 'MyDatabase',
@@ -25,33 +25,33 @@
 /// );
 /// 
 /// // Execute queries
-/// final result = await conn.getData('SELECT * FROM Users');
+/// final result = await request.getData('SELECT * FROM Users');
 /// for (final row in result.rows) {
 ///   print('User: ${row['Name']}');
 /// }
 /// 
 /// // Parameterized queries (prevents SQL injection)
-/// final users = await conn.getDataWithParams(
+/// final users = await request.getDataWithParams(
 ///   'SELECT * FROM Users WHERE Age > @minAge',
 ///   [SqlParameter(name: 'minAge', value: 18)],
 /// );
 /// 
 /// // Transactions
-/// await conn.beginTransaction();
+/// await request.beginTransaction();
 /// try {
-///   await conn.writeData('INSERT INTO Users (Name) VALUES ("Alice")');
-///   await conn.writeData('UPDATE Stats SET UserCount = UserCount + 1');
-///   await conn.commit();
+///   await request.writeData('INSERT INTO Users (Name) VALUES ("Alice")');
+///   await request.writeData('UPDATE Stats SET UserCount = UserCount + 1');
+///   await request.commit();
 /// } catch (e) {
-///   await conn.rollback();
+///   await request.rollback();
 /// }
 /// 
 /// // Bulk insert
 /// final rows = List.generate(1000, (i) => {'Name': 'User$i', 'Age': 20 + i});
-/// await conn.bulkInsert('Users', rows, batchSize: 500);
+/// await request.bulkInsert('Users', rows, batchSize: 500);
 /// 
 /// // Disconnect
-/// await conn.disconnect();
+/// await request.disconnect();
 /// ```
 library;
 

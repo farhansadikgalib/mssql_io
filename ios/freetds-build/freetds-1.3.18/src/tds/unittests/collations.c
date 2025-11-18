@@ -299,7 +299,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (IS_TDS71_PLUS(tds->conn)) {
+	if (IS_TDS71_PLUS(tds->request)) {
 		printf("Preparing table with all characters\n");
 		prepare_all_chars();
 

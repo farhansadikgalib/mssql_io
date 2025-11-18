@@ -106,7 +106,7 @@ convert_to_usc2le_string(TDSSOCKET * tds, const char *s, size_t len, char *out)
 	char *ob;
 	size_t il, ol;
 
-	TDSICONV * char_conv = tds->conn->char_convs[client2ucs2];
+	TDSICONV * char_conv = tds->request->char_convs[client2ucs2];
 
 	/* char_conv is only mostly const */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS *) & char_conv->suppress;
@@ -566,7 +566,7 @@ typedef struct tds_ntlm_auth
 } TDSNTLMAUTH;
 
 static TDSRET
-tds_ntlm_free(TDSCONNECTION * conn, TDSAUTHENTICATION * tds_auth)
+tds_ntlm_free(TDSCONNECTION * request, TDSAUTHENTICATION * tds_auth)
 {
 	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
 

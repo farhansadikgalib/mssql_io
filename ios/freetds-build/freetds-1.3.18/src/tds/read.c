@@ -168,7 +168,7 @@ tds_get_string(TDSSOCKET * tds, size_t string_len, char *dest, size_t dest_size)
 	size_t wire_bytes = string_len;
 	unsigned conv = client2server_chardata;
 
-	if (IS_TDS7_PLUS(tds->conn)) {
+	if (IS_TDS7_PLUS(tds->request)) {
 		wire_bytes *= 2u;
 		conv = client2ucs2;
 	}
@@ -178,7 +178,7 @@ tds_get_string(TDSSOCKET * tds, size_t string_len, char *dest, size_t dest_size)
 		return string_len;
 	}
 
-	return read_and_convert(tds, tds->conn->char_convs[conv], &wire_bytes, dest, dest_size);
+	return read_and_convert(tds, tds->request->char_convs[conv], &wire_bytes, dest, dest_size);
 }
 
 /**

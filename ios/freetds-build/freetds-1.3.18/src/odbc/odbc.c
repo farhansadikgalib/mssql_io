@@ -370,7 +370,7 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	if (!dbc->tds_socket)
 		goto memory_error;
 
-	dbc->tds_socket->conn->use_iconv = 0;
+	dbc->tds_socket->request->use_iconv = 0;
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
 
 	/* Set up our environment change hook */
@@ -414,17 +414,17 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 		return SQL_ERROR;
 	}
 #ifdef ENABLE_ODBC_WIDE
-	dbc->mb_conv = tds_iconv_get_info(dbc->tds_socket->conn, dbc->original_charset_num, TDS_CHARSET_UTF_8);
+	dbc->mb_conv = tds_iconv_get_info(dbc->tds_socket->request, dbc->original_charset_num, TDS_CHARSET_UTF_8);
 #endif
 
 	dbc->default_query_timeout = dbc->tds_socket->query_timeout;
 
-	if (IS_TDS7_PLUS(dbc->tds_socket->conn))
+	if (IS_TDS7_PLUS(dbc->tds_socket->request))
 		dbc->cursor_support = 1;
 
 #if ENABLE_ODBC_MARS
 	/* check if mars is enabled */
-	if (!IS_TDS72_PLUS(dbc->tds_socket->conn) || !dbc->tds_socket->conn->mars)
+	if (!IS_TDS72_PLUS(dbc->tds_socket->request) || !dbc->tds_socket->request->mars)
 		dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
 #else
 	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
@@ -463,7 +463,7 @@ odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 	SQLRETURN res;
 
 	if (!stmt->need_reprepare || stmt->prepared_query_is_rpc
-	    || !stmt->dbc || !IS_TDS7_PLUS(stmt->dbc->tds_socket->conn)) {
+	    || !stmt->dbc || !IS_TDS7_PLUS(stmt->dbc->tds_socket->request)) {
 		stmt->need_reprepare = 0;
 		return SQL_SUCCESS;
 	}
@@ -816,7 +816,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 
 		/* try with MARS */
 		if (!tds)
-			tds = tds_alloc_additional_socket(dbc_tds->conn);
+			tds = tds_alloc_additional_socket(dbc_tds->request);
 	}
 	if (tds) {
 		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
@@ -3240,7 +3240,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	ret = tds_flush_packet(tds);
 	tds_set_state(tds, TDS_PENDING);
 	/* set cursor name for TDS7+ */
-	if (TDS_SUCCEED(ret) && IS_TDS7_PLUS(tds->conn) && !tds_dstr_isempty(&stmt->cursor_name)) {
+	if (TDS_SUCCEED(ret) && IS_TDS7_PLUS(tds->request) && !tds_dstr_isempty(&stmt->cursor_name)) {
 		ret = odbc_process_tokens(stmt, TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE);
 		stmt->row_count = tds->rows_affected;
 		if (ret == TDS_CMD_DONE && cursor->cursor_id != 0) {
@@ -3361,7 +3361,7 @@ _SQLExecute(TDS_STMT * stmt)
 			if (TDS_SUCCEED(ret))
 				ret = tds_multiple_done(tds, &multiple);
 		}
-	} else if (stmt->num_param_rows <= 1 && IS_TDS71_PLUS(tds->conn) && (!stmt->dyn || stmt->need_reprepare)) {
+	} else if (stmt->num_param_rows <= 1 && IS_TDS71_PLUS(tds->request) && (!stmt->dyn || stmt->need_reprepare)) {
 			if (stmt->dyn) {
 				if (odbc_free_dynamic(stmt) != SQL_SUCCESS)
 					ODBC_RETURN(stmt, SQL_ERROR);
@@ -3374,7 +3374,7 @@ _SQLExecute(TDS_STMT * stmt)
 		TDSDYNAMIC *dyn;
 
 		/* prepare dynamic query (only for first SQLExecute call) */
-		if (!stmt->dyn || (stmt->need_reprepare && !stmt->dyn->emulated && IS_TDS7_PLUS(tds->conn))) {
+		if (!stmt->dyn || (stmt->need_reprepare && !stmt->dyn->emulated && IS_TDS7_PLUS(tds->request))) {
 
 			/* free previous prepared statement */
 			if (stmt->dyn) {
@@ -4596,7 +4596,7 @@ ODBC_FUNC(SQLPrepare, (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE))
 		 * TDS5 do not need parameters type and we have always to
 		 * prepare sepatately so this is not an issue
 		 */
-		if (IS_TDS7_PLUS(stmt->dbc->tds_socket->conn)) {
+		if (IS_TDS7_PLUS(stmt->dbc->tds_socket->request)) {
 			stmt->need_reprepare = 1;
 			ODBC_EXIT_(stmt);
 		}
@@ -5192,7 +5192,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 
 	if ((tds = dbc->tds_socket) != NULL) {
 		is_ms = TDS_IS_MSSQL(tds);
-		smajor = (tds->conn->product_version >> 24) & 0x7F;
+		smajor = (tds->request->product_version >> 24) & 0x7F;
 		if (is_ms && smajor >= 7)
 			mssql7plus_mask = ~((SQLUINTEGER) 0);
 	}
@@ -5419,7 +5419,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_DBMS_NAME:
-		p = tds ? tds->conn->product_name : NULL;
+		p = tds ? tds->request->product_name : NULL;
 		break;
 	case SQL_DBMS_VER:
 		if (!dbc->tds_socket)
@@ -5787,7 +5787,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		p = "\\";
 		break;
 	case SQL_SERVER_NAME:
-		p = dbc->tds_socket->conn->server;
+		p = dbc->tds_socket->request->server;
 		break;
 	case SQL_SPECIAL_CHARACTERS:
 		/* TODO others ?? */
@@ -5902,12 +5902,12 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 	case SQL_INFO_FREETDS_TDS_VERSION:
 		if (!dbc->tds_socket)
 			return SQL_ERROR;
-		UIVAL = TDS_MAJOR(dbc->tds_socket->conn) << 16 | TDS_MINOR(dbc->tds_socket->conn);
+		UIVAL = TDS_MAJOR(dbc->tds_socket->request) << 16 | TDS_MINOR(dbc->tds_socket->request);
 		break;
 	case SQL_INFO_FREETDS_SOCKET:
 		if (IS_TDSDEAD(dbc->tds_socket))
 			return SQL_ERROR;
-		ULVAL = dbc->tds_socket->conn->s;
+		ULVAL = dbc->tds_socket->request->s;
 		break;
 	default:
 		odbc_log_unimplemented_type("SQLGetInfo", fInfoType);
@@ -6062,9 +6062,9 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	tds = stmt->dbc->tds_socket;
 	odbc3 = (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3);
 
-	if (IS_TDS73_PLUS(tds->conn))
+	if (IS_TDS73_PLUS(tds->request))
 		sql_templ = "sp_datatype_info_100 %d";
-	else if (IS_TDS72_PLUS(tds->conn))
+	else if (IS_TDS72_PLUS(tds->request))
 		sql_templ = "sp_datatype_info_90 %d";
 
 	/* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
@@ -6935,7 +6935,7 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 	if (!tds_dstr_isempty(&catalog_name)) {
 		if (wildcards) {
 			/* if catalog specified and wildcards use sp_tableswc under mssql2k */
-			if (TDS_IS_MSSQL(tds) && tds->conn->product_version >= TDS_MS_VER(8,0,0)) {
+			if (TDS_IS_MSSQL(tds) && tds->request->product_version >= TDS_MS_VER(8,0,0)) {
 				proc = "sp_tableswc";
 				if (tds_dstr_isempty(&schema_name))
 					if (!tds_dstr_copy(&schema_name, "%"))
@@ -7228,7 +7228,7 @@ odbc_add_char_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, cons
 	col = params->columns[params->num_cols-1];
 	if (!tds_dstr_copy(&col->column_name, name))
 		return NULL;
-	tds_set_param_type(tds->conn, col, IS_TDS7_PLUS(tds->conn) ? XSYBNVARCHAR : SYBVARCHAR);
+	tds_set_param_type(tds->request, col, IS_TDS7_PLUS(tds->request) ? XSYBNVARCHAR : SYBVARCHAR);
 
 	col->column_size = len;
 	if (!tds_alloc_param_data(col))
@@ -7252,7 +7252,7 @@ odbc_add_int_param(TDSSOCKET *tds, TDSPARAMINFO *params, const char *name, int v
 	col = params->columns[params->num_cols-1];
 	if (!tds_dstr_copy(&col->column_name, name))
 		return NULL;
-	tds_set_param_type(tds->conn, col, SYBINT4);
+	tds_set_param_type(tds->request, col, SYBINT4);
 
 	if (!tds_alloc_param_data(col))
 		return NULL;
@@ -7407,7 +7407,7 @@ odbc_free_dynamic(TDS_STMT * stmt)
 		return TDS_SUCCESS;
 
 	tds = stmt->dbc->tds_socket;
-	if (!tds_needs_unprepare(tds->conn, stmt->dyn)) {
+	if (!tds_needs_unprepare(tds->request, stmt->dyn)) {
 		tds_release_dynamic(&stmt->dyn);
 		return SQL_SUCCESS;
 	}
@@ -7421,7 +7421,7 @@ odbc_free_dynamic(TDS_STMT * stmt)
 		}
 	}
 
-	if (TDS_SUCCEED(tds_deferred_unprepare(tds->conn, stmt->dyn))) {
+	if (TDS_SUCCEED(tds_deferred_unprepare(tds->request, stmt->dyn))) {
 		tds_release_dynamic(&stmt->dyn);
 		return SQL_SUCCESS;
 	}
@@ -7458,7 +7458,7 @@ odbc_free_cursor(TDS_STMT * stmt)
 	}
 
 	tds = stmt->dbc->tds_socket;
-	if (TDS_SUCCEED(tds_deferred_cursor_dealloc(tds->conn, cursor))) {
+	if (TDS_SUCCEED(tds_deferred_cursor_dealloc(tds->request, cursor))) {
 		tds_release_cursor(&stmt->cursor);
 		return SQL_SUCCESS;
 	}

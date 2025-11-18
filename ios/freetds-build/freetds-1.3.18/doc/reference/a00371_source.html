@@ -169,7 +169,7 @@ $(function() {
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;CS_RETCODE ct_con_props(<a class="code" href="a00883.html">CS_CONNECTION</a> * con, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len);</div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;CS_RETCODE ct_connect(<a class="code" href="a00883.html">CS_CONNECTION</a> * con, CS_CHAR * servername, CS_INT snamelen);</div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;CS_RETCODE ct_cmd_alloc(<a class="code" href="a00883.html">CS_CONNECTION</a> * con, <a class="code" href="a00899.html">CS_COMMAND</a> ** cmd);</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;CS_RETCODE ct_cancel(<a class="code" href="a00883.html">CS_CONNECTION</a> * conn, <a class="code" href="a00899.html">CS_COMMAND</a> * cmd, CS_INT type);</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;CS_RETCODE ct_cancel(<a class="code" href="a00883.html">CS_CONNECTION</a> * request, <a class="code" href="a00899.html">CS_COMMAND</a> * cmd, CS_INT type);</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;CS_RETCODE ct_cmd_drop(<a class="code" href="a00899.html">CS_COMMAND</a> * cmd);</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;CS_RETCODE ct_close(<a class="code" href="a00883.html">CS_CONNECTION</a> * con, CS_INT option);</div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;CS_RETCODE ct_con_drop(<a class="code" href="a00883.html">CS_CONNECTION</a> * con);</div>
@@ -199,7 +199,7 @@ $(function() {
 <div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;CS_RETCODE ct_poll(<a class="code" href="a00875.html">CS_CONTEXT</a> * ctx, <a class="code" href="a00883.html">CS_CONNECTION</a> * connection, CS_INT milliseconds, <a class="code" href="a00883.html">CS_CONNECTION</a> ** compconn,</div>
 <div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;           <a class="code" href="a00899.html">CS_COMMAND</a> ** compcmd, CS_INT * compid, CS_INT * compstatus);</div>
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;CS_RETCODE ct_cursor(<a class="code" href="a00899.html">CS_COMMAND</a> * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR * text, CS_INT tlen, CS_INT option);</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;CS_RETCODE ct_diag(<a class="code" href="a00883.html">CS_CONNECTION</a> * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer);</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;CS_RETCODE ct_diag(<a class="code" href="a00883.html">CS_CONNECTION</a> * request, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer);</div>
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
 <div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="preprocessor">#ifdef __cplusplus</span></div>
 <div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;<span class="preprocessor">#if 0</span></div>

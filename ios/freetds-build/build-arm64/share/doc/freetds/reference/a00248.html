@@ -118,7 +118,7 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>TDS_DONT_DEFINE_DEFAULT_FUNCTIONS</b></td></tr>
 <tr class="separator:a2752d753fbb0745cf318a6bfb437990d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97d7999824a751f6f94cef0bd2c25ce3"><td class="memItemLeft" align="right" valign="top"><a id="a97d7999824a751f6f94cef0bd2c25ce3"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>USE_ICONV</b>&#160;&#160;&#160;(tds-&gt;conn-&gt;use_iconv)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>USE_ICONV</b>&#160;&#160;&#160;(tds-&gt;request-&gt;use_iconv)</td></tr>
 <tr class="separator:a97d7999824a751f6f94cef0bd2c25ce3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -193,7 +193,7 @@ TDS_SERVER_TYPE&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_ca
 static TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_char_dynamic</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, void **pp, size_t allocated, <a class="el" href="a01087.html">TDSINSTREAM</a> *r_stream)</td></tr>
 <tr class="separator:a0b0496b57ee71f1a52e3cbb4a2e37a4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0411cc3a11033cdf842283689e6ed6a6"><td class="memItemLeft" align="right" valign="top"><a id="a0411cc3a11033cdf842283689e6ed6a6"></a>
-static const <a class="el" href="a01171.html">TDSCOLUMNFUNCS</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_column_funcs</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, int type)</td></tr>
+static const <a class="el" href="a01171.html">TDSCOLUMNFUNCS</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_get_column_funcs</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, int type)</td></tr>
 <tr class="separator:a0411cc3a11033cdf842283689e6ed6a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a39edbf4c287106d41ba69247b99706f6"><td class="memItemLeft" align="right" valign="top"><a id="a39edbf4c287106d41ba69247b99706f6"></a>
 TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_invalid_get</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a01175.html">TDSCOLUMN</a> *col)</td></tr>
@@ -240,10 +240,10 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_numeric_put_inf
 <tr class="memitem:ab056758b93ca7245d01169f247132878"><td class="memItemLeft" align="right" valign="top"><a id="ab056758b93ca7245d01169f247132878"></a>
 TDS_INT&#160;</td><td class="memItemRight" valign="bottom"><b>tds_numeric_row_len</b> (<a class="el" href="a01175.html">TDSCOLUMN</a> *col)</td></tr>
 <tr class="separator:ab056758b93ca7245d01169f247132878"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31604382d8b77257aad203f409155a29"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00248.html#a31604382d8b77257aad203f409155a29">tds_set_column_type</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, TDS_SERVER_TYPE type)</td></tr>
+<tr class="memitem:a31604382d8b77257aad203f409155a29"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00248.html#a31604382d8b77257aad203f409155a29">tds_set_column_type</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, TDS_SERVER_TYPE type)</td></tr>
 <tr class="memdesc:a31604382d8b77257aad203f409155a29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set type of column initializing all dependency.  <a href="a00248.html#a31604382d8b77257aad203f409155a29">More...</a><br /></td></tr>
 <tr class="separator:a31604382d8b77257aad203f409155a29"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86768d86059c5addf9a3f89edb1ef44e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00248.html#a86768d86059c5addf9a3f89edb1ef44e">tds_set_param_type</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, TDS_SERVER_TYPE type)</td></tr>
+<tr class="memitem:a86768d86059c5addf9a3f89edb1ef44e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00248.html#a86768d86059c5addf9a3f89edb1ef44e">tds_set_param_type</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a01175.html">TDSCOLUMN</a> *curcol, TDS_SERVER_TYPE type)</td></tr>
 <tr class="memdesc:a86768d86059c5addf9a3f89edb1ef44e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set type of column initializing all dependency.  <a href="a00248.html#a86768d86059c5addf9a3f89edb1ef44e">More...</a><br /></td></tr>
 <tr class="separator:a86768d86059c5addf9a3f89edb1ef44e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa818c1cbf4d16e609b7e4895cc7ed74f"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00248.html#aa818c1cbf4d16e609b7e4895cc7ed74f">tds_swap_numeric</a> (<a class="el" href="a01043.html">TDS_NUMERIC</a> *num)</td></tr>
@@ -422,7 +422,7 @@ Here is the call graph for this function:</div>
           <td class="memname">void tds_set_column_type </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -465,7 +465,7 @@ Here is the call graph for this function:</div>
           <td class="memname">void tds_set_param_type </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

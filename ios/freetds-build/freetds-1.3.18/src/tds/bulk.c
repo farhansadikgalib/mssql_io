@@ -175,7 +175,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			goto cleanup;
 	}
 
-	if (!IS_TDS7_PLUS(tds->conn)) {
+	if (!IS_TDS7_PLUS(tds->request)) {
 		bindinfo->current_row = tds_new(unsigned char, bindinfo->row_size);
 		if (!bindinfo->current_row)
 			goto cleanup;
@@ -267,7 +267,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 {
 	char *query;
 
-	if (IS_TDS7_PLUS(tds->conn)) {
+	if (IS_TDS7_PLUS(tds->request)) {
 		int i, firstcol, erc;
 		char *hint;
 		TDSCOLUMN *bcpcol;
@@ -476,7 +476,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo,
 	if (tds->out_flag != TDS_BULK || tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 		return TDS_FAIL;
 
-	if (IS_TDS7_PLUS(tds->conn))
+	if (IS_TDS7_PLUS(tds->request))
 		rc = tds7_send_record(tds, bcpinfo, get_col_data, offset);
 	else
 		rc = tds5_send_record(tds, bcpinfo, get_col_data, null_error, offset);
@@ -779,7 +779,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			continue;
 		}
 
-		if (IS_TDS72_PLUS(tds->conn))
+		if (IS_TDS72_PLUS(tds->request))
 			tds_put_int(tds, bcpcol->column_usertype);
 		else
 			tds_put_smallint(tds, bcpcol->column_usertype);
@@ -793,11 +793,11 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		 * different from BCP format
 		 */
 		if (is_blob_type(bcpcol->on_server.column_type)) {
-			converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2],
+			converted_name = tds_convert_string(tds, tds->request->char_convs[client2ucs2],
 							    tds_dstr_cstr(&bcpinfo->tablename),
 							    (int) tds_dstr_len(&bcpinfo->tablename), &converted_len);
 			if (!converted_name) {
-				tds_connection_close(tds->conn);
+				tds_connection_close(tds->request);
 				return TDS_FAIL;
 			}
 
@@ -808,11 +808,11 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			tds_convert_string_free(tds_dstr_cstr(&bcpinfo->tablename), converted_name);
 		}
 
-		converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2],
+		converted_name = tds_convert_string(tds, tds->request->char_convs[client2ucs2],
 						    tds_dstr_cstr(&bcpcol->column_name),
 						    (int) tds_dstr_len(&bcpcol->column_name), &converted_len);
 		if (!converted_name) {
-			tds_connection_close(tds->conn);
+			tds_connection_close(tds->request);
 			return TDS_FAIL;
 		}
 
@@ -869,7 +869,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start(%p, %p)\n", tds, bcpinfo);
 
-	if (!IS_TDS50_PLUS(tds->conn))
+	if (!IS_TDS50_PLUS(tds->request))
 		return TDS_FAIL;
 
 	rc = tds_submit_query(tds, bcpinfo->insert_stmt);
@@ -891,7 +891,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	if (tds_set_state(tds, TDS_SENDING) != TDS_SENDING)
 		return TDS_FAIL;
 
-	if (IS_TDS7_PLUS(tds->conn))
+	if (IS_TDS7_PLUS(tds->request))
 		tds7_bcp_send_colmetadata(tds, bcpinfo);
 	
 	return TDS_SUCCESS;
@@ -942,7 +942,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	 */
 	var_cols = 0;
 
-	if (IS_TDS50(tds->conn)) {
+	if (IS_TDS50(tds->request)) {
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 	
 			bcpcol = bcpinfo->bindinfo->columns[i];

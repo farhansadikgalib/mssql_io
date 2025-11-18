@@ -460,13 +460,13 @@ Functions</h2></td></tr>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>_iconv_close</b> (iconv_t *cd)</td></tr>
 <tr class="separator:gac84d63747b4310901ea09a8995ffbf30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8a0d040a83b3dffb545c6db67904f881"><td class="memItemLeft" align="right" valign="top">
-static int&#160;</td><td class="memItemRight" valign="bottom"><b>collate2charset</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, TDS_UCHAR collate[5])</td></tr>
+static int&#160;</td><td class="memItemRight" valign="bottom"><b>collate2charset</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, TDS_UCHAR collate[5])</td></tr>
 <tr class="separator:ga8a0d040a83b3dffb545c6db67904f881"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3380140fc6eb9f2090c430f40e846876"><td class="memItemLeft" align="right" valign="top">static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#ga3380140fc6eb9f2090c430f40e846876">skip_one_input_sequence</a> (iconv_t cd, const <a class="el" href="a00449.html#ae21e9f12e8ee5219228ee6b6a41dec66">TDS_ENCODING</a> *charset, const char **input, size_t *input_size)</td></tr>
 <tr class="memdesc:ga3380140fc6eb9f2090c430f40e846876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the input sequence pointer to the next valid position.  <a href="a00561.html#ga3380140fc6eb9f2090c430f40e846876">More...</a><br /></td></tr>
 <tr class="separator:ga3380140fc6eb9f2090c430f40e846876"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1db9b785009f6c3d81dcdc92fd3fed99"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds7_srv_charset_changed</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, TDS_UCHAR collation[5])</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds7_srv_charset_changed</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, TDS_UCHAR collation[5])</td></tr>
 <tr class="separator:ga1db9b785009f6c3d81dcdc92fd3fed99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac01180352db7052e786463e3b07a8a9e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#gac01180352db7052e786463e3b07a8a9e">tds_canonical_charset</a> (const char *charset_name)</td></tr>
 <tr class="memdesc:gac01180352db7052e786463e3b07a8a9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine canonical iconv character set.  <a href="a00561.html#gac01180352db7052e786463e3b07a8a9e">More...</a><br /></td></tr>
@@ -477,27 +477,27 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>tds7_srv_charset_chan
 <tr class="memitem:ga87db49044919f1bc84c0ff5e9ab00304"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#ga87db49044919f1bc84c0ff5e9ab00304">tds_iconv</a> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a00983.html">TDSICONV</a> *conv, TDS_ICONV_DIRECTION io, const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)</td></tr>
 <tr class="memdesc:ga87db49044919f1bc84c0ff5e9ab00304"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper around iconv(3).  <a href="a00561.html#ga87db49044919f1bc84c0ff5e9ab00304">More...</a><br /></td></tr>
 <tr class="separator:ga87db49044919f1bc84c0ff5e9ab00304"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a026957dbbd994b48b571a63405f427cd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a01427.html#a026957dbbd994b48b571a63405f427cd">tds_iconv_alloc</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+<tr class="memitem:a026957dbbd994b48b571a63405f427cd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a01427.html#a026957dbbd994b48b571a63405f427cd">tds_iconv_alloc</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="memdesc:a026957dbbd994b48b571a63405f427cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate iconv stuff.  <a href="a01427.html#a026957dbbd994b48b571a63405f427cd">More...</a><br /></td></tr>
 <tr class="separator:a026957dbbd994b48b571a63405f427cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga443693697445c37abcd4b7103b1c47ac"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_close</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_close</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="separator:ga443693697445c37abcd4b7103b1c47ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad79cfd8c6b158aa6992e510abe4612aa"><td class="memItemLeft" align="right" valign="top">
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_err</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, int err)</td></tr>
 <tr class="separator:gad79cfd8c6b158aa6992e510abe4612aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad161ada50068b9a8a05786cce7b3dc1d"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_free</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_free</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request)</td></tr>
 <tr class="separator:gad161ada50068b9a8a05786cce7b3dc1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaed775f7fcca42b5c2a53f9508c140259"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="a00983.html">TDSICONV</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#gaed775f7fcca42b5c2a53f9508c140259">tds_iconv_from_collate</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, TDS_UCHAR collate[5])</td></tr>
+<a class="el" href="a00983.html">TDSICONV</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#gaed775f7fcca42b5c2a53f9508c140259">tds_iconv_from_collate</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, TDS_UCHAR collate[5])</td></tr>
 <tr class="memdesc:gaed775f7fcca42b5c2a53f9508c140259"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get iconv information from a LCID (to support different column encoding under MSSQL2K) <br /></td></tr>
 <tr class="separator:gaed775f7fcca42b5c2a53f9508c140259"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga978d2036de6a11a73ed4ab78b69c79f5"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="a00983.html">TDSICONV</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_get</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, const char *client_charset, const char *server_charset)</td></tr>
+<a class="el" href="a00983.html">TDSICONV</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_get</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, const char *client_charset, const char *server_charset)</td></tr>
 <tr class="separator:ga978d2036de6a11a73ed4ab78b69c79f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab95825efc9a876b0a7ce77f126cf3fc1"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="a00983.html">TDSICONV</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#gab95825efc9a876b0a7ce77f126cf3fc1">tds_iconv_get_info</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, int canonic_client, int canonic_server)</td></tr>
+<a class="el" href="a00983.html">TDSICONV</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00561.html#gab95825efc9a876b0a7ce77f126cf3fc1">tds_iconv_get_info</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, int canonic_client, int canonic_server)</td></tr>
 <tr class="memdesc:gab95825efc9a876b0a7ce77f126cf3fc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a iconv info structure, allocate and initialize if needed. <br /></td></tr>
 <tr class="separator:gab95825efc9a876b0a7ce77f126cf3fc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacacca154f73a30b2fb8a4736de51755f"><td class="memItemLeft" align="right" valign="top">
@@ -511,7 +511,7 @@ static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
 <tr class="memdesc:a89de4d12be43b135ad355236717e9cbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize charset searching for UTF-8, UCS-2 and ISO8859-1. <br /></td></tr>
 <tr class="separator:a89de4d12be43b135ad355236717e9cbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1e4275b3494b59d8b6c642955bb72106"><td class="memItemLeft" align="right" valign="top">
-TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_open</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, const char *charset, int use_utf16)</td></tr>
+TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_open</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, const char *charset, int use_utf16)</td></tr>
 <tr class="separator:ga1e4275b3494b59d8b6c642955bb72106"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29bd4b16c03829201a2807c25548f807"><td class="memItemLeft" align="right" valign="top"><a id="a29bd4b16c03829201a2807c25548f807"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_iconv_reset</b> (<a class="el" href="a00983.html">TDSICONV</a> *conv)</td></tr>
@@ -521,10 +521,10 @@ static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class=
 <tr class="memdesc:a010ab1d181c8996f6a5984c9900eca6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get iconv name given canonic. <br /></td></tr>
 <tr class="separator:a010ab1d181c8996f6a5984c9900eca6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5252425e5f0ba60e3e10a0e26b88e254"><td class="memItemLeft" align="right" valign="top">
-void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_srv_charset_changed</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, const char *charset)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_srv_charset_changed</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, const char *charset)</td></tr>
 <tr class="separator:ga5252425e5f0ba60e3e10a0e26b88e254"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9ab19ef36c79c203029ef4090bc54409"><td class="memItemLeft" align="right" valign="top">
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_srv_charset_changed_num</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, int canonic_charset_num)</td></tr>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds_srv_charset_changed_num</b> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, int canonic_charset_num)</td></tr>
 <tr class="separator:ga9ab19ef36c79c203029ef4090bc54409"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
@@ -582,7 +582,7 @@ static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>ucs2na
           <td class="memname">int tds_iconv_alloc </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em></td><td>)</td>
+          <td class="paramname"><em>request</em></td><td>)</td>
           <td></td>
         </tr>
       </table>

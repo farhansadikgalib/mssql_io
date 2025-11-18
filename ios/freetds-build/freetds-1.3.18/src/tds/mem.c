@@ -53,7 +53,7 @@
 #include <langinfo.h>
 #endif /* HAVE_LANGINFO_H */
 
-static void tds_free_env(TDSCONNECTION * conn);
+static void tds_free_env(TDSCONNECTION * request);
 static void tds_free_compute_results(TDSSOCKET * tds);
 static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 
@@ -87,22 +87,22 @@ static volatile unsigned int inc_num = 1;
 
 /**
  * Get an id for dynamic query based on TDS information
- * \param conn state information for the connection and the TDS protocol
+ * \param request state information for the connection and the TDS protocol
  * \return TDS_FAIL or TDS_SUCCESS
  */
 static char *
-tds_get_dynid(TDSCONNECTION * conn, char *id)
+tds_get_dynid(TDSCONNECTION * request, char *id)
 {
 	unsigned long n;
 	int i;
 	char *p;
 	char c;
 
-	CHECK_CONN_EXTRA(conn);
+	CHECK_CONN_EXTRA(request);
 
 	inc_num = (inc_num + 1) & 0xffff;
 	/* some version of Sybase require length <= 10, so we code id */
-	n = (unsigned long) (TDS_INTPTR) conn;
+	n = (unsigned long) (TDS_INTPTR) request;
 	p = id;
 	*p++ = (char) ('a' + (n % 26u));
 	n /= 26u;
@@ -148,30 +148,30 @@ tds_free_column(TDSCOLUMN *col)
 
 
 /**
- * \fn TDSDYNAMIC *tds_alloc_dynamic(TDSCONNECTION *conn, const char *id)
+ * \fn TDSDYNAMIC *tds_alloc_dynamic(TDSCONNECTION *request, const char *id)
  * \brief Allocate a dynamic statement.
- * \param conn the connection within which to allocate the statement.
+ * \param request the connection within which to allocate the statement.
  * \param id a character label identifying the statement.
  * \return a pointer to the allocated structure (NULL on failure).
  *
  * tds_alloc_dynamic is used to implement placeholder code under TDS 5.0
  */
 TDSDYNAMIC *
-tds_alloc_dynamic(TDSCONNECTION * conn, const char *id)
+tds_alloc_dynamic(TDSCONNECTION * request, const char *id)
 {
 	TDSDYNAMIC *dyn;
 	char tmp_id[30];
 
 	if (id) {
 		/* check to see if id already exists (shouldn't) */
-		if (tds_lookup_dynamic(conn, id))
+		if (tds_lookup_dynamic(request, id))
 			return NULL;
 	} else {
 		unsigned int n;
 		id = tmp_id;
 
 		for (n = 0;;) {
-			if (!tds_lookup_dynamic(conn, tds_get_dynid(conn, tmp_id)))
+			if (!tds_lookup_dynamic(request, tds_get_dynid(request, tmp_id)))
 				break;
 			if (++n == 256)
 				return NULL;
@@ -184,8 +184,8 @@ tds_alloc_dynamic(TDSCONNECTION * conn, const char *id)
 	dyn->ref_count = 2;
 
 	/* insert into list */
-	dyn->next = conn->dyns;
-	conn->dyns = dyn;
+	dyn->next = request->dyns;
+	request->dyns = dyn;
 
 	strlcpy(dyn->id, id, TDS_MAX_DYNID_LEN);
 
@@ -218,13 +218,13 @@ tds_free_input_params(TDSDYNAMIC * dyn)
  * Called when dynamic got deallocated from server
  */
 void
-tds_dynamic_deallocated(TDSCONNECTION *conn, TDSDYNAMIC *dyn)
+tds_dynamic_deallocated(TDSCONNECTION *request, TDSDYNAMIC *dyn)
 {
 	TDSDYNAMIC **victim;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_dynamic_deallocated() : freeing dynamic_id %s\n", dyn->id);
 
-	victim = &conn->dyns;
+	victim = &request->dyns;
 	while (*victim != dyn) {
 		if (*victim == NULL) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_dynamic_deallocated() : cannot find id %s\n", dyn->id);
@@ -890,10 +890,10 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	TEST_CALLOC(cursor->query, char, querylen + 1);
 	memcpy(cursor->query, query, querylen);
 
-	if (tds->conn->cursors == NULL) {
-		tds->conn->cursors = cursor;
+	if (tds->request->cursors == NULL) {
+		tds->request->cursors = cursor;
 	} else {
-		for (pcursor = tds->conn->cursors; pcursor->next; pcursor = pcursor->next)
+		for (pcursor = tds->request->cursors; pcursor->next; pcursor = pcursor->next)
 			continue;
 		pcursor->next = cursor;
 	}
@@ -911,13 +911,13 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
  * Called when cursor got deallocated from server
  */
 void
-tds_cursor_deallocated(TDSCONNECTION *conn, TDSCURSOR *cursor)
+tds_cursor_deallocated(TDSCONNECTION *request, TDSCURSOR *cursor)
 {
 	TDSCURSOR **victim;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : freeing cursor_id %d\n", cursor->cursor_id);
 
-	victim = &conn->cursors;
+	victim = &request->cursors;
 	while (*victim != cursor) {
 		if (*victim == NULL) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : cannot find cursor_id %d\n", cursor->cursor_id);
@@ -1101,59 +1101,59 @@ tds_free_packets(TDSPACKET *packet)
 }
 
 static void
-tds_deinit_connection(TDSCONNECTION *conn)
+tds_deinit_connection(TDSCONNECTION *request)
 {
-	if (conn->authentication)
-		conn->authentication->free(conn, conn->authentication);
-	conn->authentication = NULL;
-	while (conn->dyns)
-		tds_dynamic_deallocated(conn, conn->dyns);
-	while (conn->cursors)
-		tds_cursor_deallocated(conn, conn->cursors);
-	tds_ssl_deinit(conn);
+	if (request->authentication)
+		request->authentication->free(request, request->authentication);
+	request->authentication = NULL;
+	while (request->dyns)
+		tds_dynamic_deallocated(request, request->dyns);
+	while (request->cursors)
+		tds_cursor_deallocated(request, request->cursors);
+	tds_ssl_deinit(request);
 	/* close connection and free inactive sockets */
-	tds_connection_close(conn);
-	tds_wakeup_close(&conn->wakeup);
-	tds_iconv_free(conn);
-	free(conn->product_name);
-	free(conn->server);
-	tds_free_env(conn);
-	tds_free_packets(conn->packet_cache);
-	tds_mutex_free(&conn->list_mtx);
+	tds_connection_close(request);
+	tds_wakeup_close(&request->wakeup);
+	tds_iconv_free(request);
+	free(request->product_name);
+	free(request->server);
+	tds_free_env(request);
+	tds_free_packets(request->packet_cache);
+	tds_mutex_free(&request->list_mtx);
 #if ENABLE_ODBC_MARS
-	tds_free_packets(conn->packets);
-	tds_free_packets(conn->recv_packet);
-	tds_free_packets(conn->send_packets);
-	free(conn->sessions);
+	tds_free_packets(request->packets);
+	tds_free_packets(request->recv_packet);
+	tds_free_packets(request->send_packets);
+	free(request->sessions);
 #endif
 }
 
 static TDSCONNECTION *
-tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsize)
+tds_init_connection(TDSCONNECTION *request, TDSCONTEXT *context, unsigned int bufsize)
 {
-	conn->env.block_size = bufsize;
-	conn->s = INVALID_SOCKET;
-	conn->use_iconv = 1;
-	conn->tds_ctx = context;
+	request->env.block_size = bufsize;
+	request->s = INVALID_SOCKET;
+	request->use_iconv = 1;
+	request->tds_ctx = context;
 
-	if (tds_wakeup_init(&conn->wakeup))
+	if (tds_wakeup_init(&request->wakeup))
 		goto Cleanup;
 
-	if (tds_iconv_alloc(conn))
+	if (tds_iconv_alloc(request))
 		goto Cleanup;
 
-	if (tds_mutex_init(&conn->list_mtx))
+	if (tds_mutex_init(&request->list_mtx))
 		goto Cleanup;
 
 #if ENABLE_ODBC_MARS
-	TEST_CALLOC(conn->sessions, TDSSOCKET*, 64);
-	conn->num_sessions = 64;
+	TEST_CALLOC(request->sessions, TDSSOCKET*, 64);
+	request->num_sessions = 64;
 #endif
-	return conn;
+	return request;
 
 Cleanup:
-	tds_wakeup_close(&conn->wakeup);
-	tds_iconv_free(conn);
+	tds_wakeup_close(&request->wakeup);
+	tds_iconv_free(request);
 	return NULL;
 }
 
@@ -1203,26 +1203,26 @@ tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 
 #if ENABLE_ODBC_MARS
 static void
-tds_free_connection(TDSCONNECTION *conn)
+tds_free_connection(TDSCONNECTION *request)
 {
-	if (!conn) return;
-	assert(conn->in_net_tds == NULL);
-	tds_deinit_connection(conn);
-	free(conn);
+	if (!request) return;
+	assert(request->in_net_tds == NULL);
+	tds_deinit_connection(request);
+	free(request);
 }
 
 static TDSCONNECTION *
 tds_alloc_connection(TDSCONTEXT *context, unsigned int bufsize)
 {
-	TDSCONNECTION *conn;
+	TDSCONNECTION *request;
 
-	TEST_MALLOC(conn, TDSCONNECTION);
-	if (!tds_init_connection(conn, context, bufsize))
+	TEST_MALLOC(request, TDSCONNECTION);
+	if (!tds_init_connection(request, context, bufsize))
 		goto Cleanup;
-	return conn;
+	return request;
 
 Cleanup:
-	tds_free_connection(conn);
+	tds_free_connection(request);
 	return NULL;
 }
 
@@ -1244,19 +1244,19 @@ tds_alloc_socket_base(unsigned int bufsize)
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 {
-	TDSCONNECTION *conn = tds_alloc_connection(context, bufsize);
+	TDSCONNECTION *request = tds_alloc_connection(context, bufsize);
 	TDSSOCKET *tds;
 
-	if (!conn)
+	if (!request)
 		return NULL;
 
 	tds = tds_alloc_socket_base(bufsize);
 	if (tds) {
-		conn->sessions[0] = tds;
-		tds->conn = conn;
+		request->sessions[0] = tds;
+		tds->request = request;
 		return tds;
 	}
-	tds_free_connection(conn);
+	tds_free_connection(request);
 	return NULL;
 }
 
@@ -1264,42 +1264,42 @@ static bool
 tds_alloc_new_sid(TDSSOCKET *tds)
 {
 	uint16_t sid;
-	TDSCONNECTION *conn = tds->conn;
+	TDSCONNECTION *request = tds->request;
 
-	tds_mutex_lock(&conn->list_mtx);
-	for (sid = 1; sid < conn->num_sessions; ++sid)
-		if (!conn->sessions[sid])
+	tds_mutex_lock(&request->list_mtx);
+	for (sid = 1; sid < request->num_sessions; ++sid)
+		if (!request->sessions[sid])
 			break;
-	if (sid == conn->num_sessions) {
+	if (sid == request->num_sessions) {
 		/* extend array */
-		TDSSOCKET **s = (TDSSOCKET **) TDS_RESIZE(conn->sessions, sid+64);
+		TDSSOCKET **s = (TDSSOCKET **) TDS_RESIZE(request->sessions, sid+64);
 		if (!s)
 			goto error;
-		memset(s + conn->num_sessions, 0, sizeof(*s) * 64);
-		conn->num_sessions += 64;
+		memset(s + request->num_sessions, 0, sizeof(*s) * 64);
+		request->num_sessions += 64;
 	}
-	conn->sessions[sid] = tds;
+	request->sessions[sid] = tds;
 	tds->sid = sid;
 error:
-	tds_mutex_unlock(&conn->list_mtx);
+	tds_mutex_unlock(&request->list_mtx);
 	return tds->sid != 0;
 }
 
 TDSSOCKET *
-tds_alloc_additional_socket(TDSCONNECTION *conn)
+tds_alloc_additional_socket(TDSCONNECTION *request)
 {
 	TDSSOCKET *tds;
-	if (!IS_TDS72_PLUS(conn) || !conn->mars)
+	if (!IS_TDS72_PLUS(request) || !request->mars)
 		return NULL;
 
-	tds = tds_alloc_socket_base(sizeof(TDS72_SMP_HEADER) + conn->env.block_size);
+	tds = tds_alloc_socket_base(sizeof(TDS72_SMP_HEADER) + request->env.block_size);
 	if (!tds)
 		return NULL;
 	tds->send_packet->data_start = sizeof(TDS72_SMP_HEADER);
 	tds->out_buf = tds->send_packet->buf + sizeof(TDS72_SMP_HEADER);
 	tds->out_buf_max -= sizeof(TDS72_SMP_HEADER);
 
-	tds->conn = conn;
+	tds->request = request;
 	if (!tds_alloc_new_sid(tds))
 		goto Cleanup;
 
@@ -1320,7 +1320,7 @@ tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 	TDSSOCKET *tds_socket;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
-	if (!tds_init_connection(tds_socket->conn, context, bufsize))
+	if (!tds_init_connection(tds_socket->request, context, bufsize))
 		goto Cleanup;
 	if (!tds_init_socket(tds_socket, bufsize))
 		goto Cleanup;
@@ -1337,7 +1337,7 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 {
 	TDSPACKET *packet;
 #if ENABLE_ODBC_MARS
-	size_t smp_hdr_len = tds->conn->mars ? sizeof(TDS72_SMP_HEADER) : 0;
+	size_t smp_hdr_len = tds->request->mars ? sizeof(TDS72_SMP_HEADER) : 0;
 #else
 	enum { smp_hdr_len = 0 };
 #endif
@@ -1352,7 +1352,7 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 	if (tds->out_pos > bufsize || tds->frozen)
 		return NULL;
 
-	tds->conn->env.block_size = bufsize;
+	tds->request->env.block_size = bufsize;
 
 	packet = tds_realloc_packet(tds->send_packet, smp_hdr_len + bufsize + TDS_ADDITIONAL_SPACE);
 	if (packet == NULL)
@@ -1368,15 +1368,15 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 
 #if ENABLE_ODBC_MARS
 static void
-tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
+tds_connection_remove_socket(TDSCONNECTION *request, TDSSOCKET *tds)
 {
 	unsigned n;
 	bool must_free_connection = true;
-	tds_mutex_lock(&conn->list_mtx);
-	if (tds->sid < conn->num_sessions)
-		conn->sessions[tds->sid] = NULL;
-	for (n = 0; n < conn->num_sessions; ++n)
-		if (TDSSOCKET_VALID(conn->sessions[n])) {
+	tds_mutex_lock(&request->list_mtx);
+	if (tds->sid < request->num_sessions)
+		request->sessions[tds->sid] = NULL;
+	for (n = 0; n < request->num_sessions; ++n)
+		if (TDSSOCKET_VALID(request->sessions[n])) {
 			must_free_connection = false;
 			break;
 		}
@@ -1384,19 +1384,19 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 		/* tds use connection member so must be valid */
 		tds_append_fin(tds);
 	}
-	tds_mutex_unlock(&conn->list_mtx);
+	tds_mutex_unlock(&request->list_mtx);
 
 	/* detach entirely */
-	tds->conn = NULL;
+	tds->request = NULL;
 
 	if (must_free_connection)
-		tds_free_connection(conn);
+		tds_free_connection(request);
 }
 #else
 static void inline
-tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
+tds_connection_remove_socket(TDSCONNECTION *request, TDSSOCKET *tds)
 {
-	tds_deinit_connection(conn);
+	tds_deinit_connection(request);
 }
 #endif
 
@@ -1416,12 +1416,12 @@ tds_free_socket(TDSSOCKET * tds)
 	tds_release_cursor(&tds->cur_cursor);
 	tds_detach_results(tds->current_results);
 #if ENABLE_EXTRA_CHECKS
-	for (dyn = tds->conn->dyns; dyn; dyn = dyn->next) {
+	for (dyn = tds->request->dyns; dyn; dyn = dyn->next) {
 		if (dyn->res_info && dyn->res_info->attached_to == tds) {
 			assert(0);
 		}
 	}
-	for (cur = tds->conn->cursors; cur; cur = cur->next) {
+	for (cur = tds->request->cursors; cur; cur = cur->next) {
 		if (cur->res_info && cur->res_info->attached_to == tds) {
 			assert(0);
 		}
@@ -1432,7 +1432,7 @@ tds_free_socket(TDSSOCKET * tds)
 	tds_cond_destroy(&tds->packet_cond);
 #endif
 
-	tds_connection_remove_socket(tds->conn, tds);
+	tds_connection_remove_socket(tds->request, tds);
 	tds_free_packets(tds->recv_packet);
 	if (tds->frozen_packets)
 		tds_free_packets(tds->frozen_packets);
@@ -1454,14 +1454,14 @@ tds_free_locale(TDSLOCALE * locale)
 }
 
 static void
-tds_free_env(TDSCONNECTION* conn)
+tds_free_env(TDSCONNECTION* request)
 {
-	if (conn->env.language)
-		TDS_ZERO_FREE(conn->env.language);
-	if (conn->env.charset)
-		TDS_ZERO_FREE(conn->env.charset);
-	if (conn->env.database)
-		TDS_ZERO_FREE(conn->env.database);
+	if (request->env.language)
+		TDS_ZERO_FREE(request->env.language);
+	if (request->env.charset)
+		TDS_ZERO_FREE(request->env.charset);
+	if (request->env.database)
+		TDS_ZERO_FREE(request->env.database);
 }
 
 void

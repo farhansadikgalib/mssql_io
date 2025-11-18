@@ -210,7 +210,7 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int db_type,
 	 * The 4000 check is to allow varchar with more then 4000 characters (varchar is limited to 8000
 	 * characters) which can't be converted to nvarchar (which is limited to 4000 character)
 	 */
-	if (type == SYBVARCHAR && IS_TDS7_PLUS(dbproc->tds_socket->conn)
+	if (type == SYBVARCHAR && IS_TDS7_PLUS(dbproc->tds_socket->request)
 	    && maxlen <= 4000 && datalen <= 4000)
 		type = XSYBNVARCHAR;
 
@@ -431,7 +431,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 				return NULL;
 			}
 
-		tds_set_param_type(tds->conn, pcol, temp_type);
+		tds_set_param_type(tds->request, pcol, temp_type);
 
 		if (p->maxlen > 0)
 			pcol->column_size = p->maxlen;

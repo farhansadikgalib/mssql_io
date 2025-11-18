@@ -125,7 +125,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (IS_TDS7_PLUS(tds->conn)) {
+	if (IS_TDS7_PLUS(tds->request)) {
 		char buf[129 * 8];
 		int i;
 

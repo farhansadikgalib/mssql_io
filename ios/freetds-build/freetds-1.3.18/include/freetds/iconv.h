@@ -116,8 +116,8 @@ size_t tds_iconv(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 		 const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
 int tds_canonical_charset(const char *charset_name);
 const char *tds_canonical_charset_name(const char *charset_name);
-TDSICONV *tds_iconv_get(TDSCONNECTION * conn, const char *client_charset, const char *server_charset);
-TDSICONV *tds_iconv_get_info(TDSCONNECTION * conn, int canonic_client, int canonic_server);
+TDSICONV *tds_iconv_get(TDSCONNECTION * request, const char *client_charset, const char *server_charset);
+TDSICONV *tds_iconv_get_info(TDSCONNECTION * request, int canonic_client, int canonic_server);
 
 #ifdef __cplusplus
 }

@@ -63,7 +63,7 @@ static void
 pool_mbr_free_socket(TDSSOCKET *tds)
 {
 	if (tds) {
-		TDSCONTEXT *ctx = (TDSCONTEXT *) tds->conn->tds_ctx;
+		TDSCONTEXT *ctx = (TDSCONTEXT *) tds->request->tds_ctx;
 
 		tds_free_socket(tds);
 		tds_free_context(ctx);
@@ -131,7 +131,7 @@ pool_mbr_login(const TDS_POOL * pool, int tds_version)
 	tds_free_login(connection);
 
 	if (pool->database && strlen(pool->database)) {
-		if (strcasecmp(tds->conn->env.database, pool->database) != 0) {
+		if (strcasecmp(tds->request->env.database, pool->database) != 0) {
 			fprintf(stderr, "changing database failed\n");
 			return NULL;
 		}
@@ -199,7 +199,7 @@ pool_reset_member(TDS_POOL * pool, TDS_POOL_MEMBER * pmbr)
 	if (TDS_FAILED(tds_process_cancel(tds)))
 		goto failure;
 
-	if (IS_TDS71_PLUS(tds->conn)) {
+	if (IS_TDS71_PLUS(tds->request)) {
 		/* this 0x9 final reset the state from mssql 2000 */
 		if (tds_set_state(tds, TDS_WRITING) != TDS_WRITING)
 			goto failure;
@@ -276,7 +276,7 @@ pool_mbr_init(TDS_POOL * pool)
 		pmbr->last_used_tm = time(NULL);
 		pool->num_active_members++;
 		dlist_member_append(&pool->idle_members, pmbr);
-		if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
+		if (!IS_TDS71_PLUS(pmbr->sock.tds->request)) {
 			fprintf(stderr, "Current pool implementation does not support protocol versions former than 7.1\n");
 			exit(1);
 		}
@@ -405,7 +405,7 @@ pool_process_members(TDS_POOL * pool, fd_set * rfds, fd_set * wfds)
 static bool
 compatible_versions(const TDSSOCKET *tds, const TDS_POOL_USER *user)
 {
-	if (tds->conn->tds_version != user->login->tds_version)
+	if (tds->request->tds_version != user->login->tds_version)
 		return false;
 	return true;
 }
@@ -432,7 +432,7 @@ static TDS_THREAD_PROC_DECLARE(connect_proc, arg)
 			tdsdump_log(TDS_DBG_ERROR, "Error opening a new connection to server\n");
 			break;
 		}
-		if (!IS_TDS71_PLUS(pmbr->sock.tds->conn)) {
+		if (!IS_TDS71_PLUS(pmbr->sock.tds->request)) {
 			tdsdump_log(TDS_DBG_ERROR, "Protocol server version not supported\n");
 			break;
 		}
@@ -518,7 +518,7 @@ pool_assign_idle_member(TDS_POOL * pool, TDS_POOL_USER *puser)
 
 	/* if we can open a new connection open it */
 	if (pool->num_active_members >= pool->max_open_conn) {
-		fprintf(stderr, "No idle members left, increase \"max pool conn\"\n");
+		fprintf(stderr, "No idle members left, increase \"max pool request\"\n");
 		return NULL;
 	}
 

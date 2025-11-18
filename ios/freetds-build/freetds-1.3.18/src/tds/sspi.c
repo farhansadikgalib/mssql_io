@@ -104,7 +104,7 @@ tds_init_secdll(void)
 }
 
 static int
-tds_sspi_free(TDSCONNECTION * conn, struct tds_authentication * tds_auth)
+tds_sspi_free(TDSCONNECTION * request, struct tds_authentication * tds_auth)
 {
 	TDSSSPIAUTH *auth = (TDSSSPIAUTH *) tds_auth;
 
@@ -277,7 +277,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, login->port) < 0) {
 			if (addrs)
 				freeaddrinfo(addrs);
-			tds_sspi_free(tds->conn, &auth->tds_auth);
+			tds_sspi_free(tds->request, &auth->tds_auth);
 			return NULL;
 		}
 		tdsdump_log(TDS_DBG_NETWORK, "kerberos name %s\n", auth->sname);
@@ -302,7 +302,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 		break;
 
 	default:
-		tds_sspi_free(tds->conn, &auth->tds_auth);
+		tds_sspi_free(tds->request, &auth->tds_auth);
 		return NULL;
 	}
 

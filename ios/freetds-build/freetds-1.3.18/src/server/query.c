@@ -80,14 +80,14 @@ tds_get_query_head(TDSSOCKET * tds, TDSHEADERS * head)
 	size_t qn_msgtext_len = 0;
 	size_t qn_options_len = 0;
 
-	if (!IS_TDS72_PLUS(tds->conn)) {
+	if (!IS_TDS72_PLUS(tds->request)) {
 		return TDS_SUCCESS;
 	}
 
 	qn_len = tds_get_int(tds) - 4 - 18;  /* total length */
 	tds_get_int(tds);  /* length: transaction descriptor, ignored */
 	tds_get_smallint(tds);  /* type: transaction descriptor, ignored */
-	tds_get_n(tds, tds->conn->tds72_transaction, 8);  /* transaction */
+	tds_get_n(tds, tds->request->tds72_transaction, 8);  /* transaction */
 	tds_get_int(tds);  /* request count, ignored */
 	if (qn_len != 0) {
 		qn_len = tds_get_int(tds);  /* length: query notification */
@@ -206,7 +206,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 
 		case TDS_QUERY:
 			/* TDS7+ adds a query head */
-			if (IS_TDS72_PLUS(tds->conn) && tds_get_query_head(tds, &head) != TDS_SUCCESS)
+			if (IS_TDS72_PLUS(tds->request) && tds_get_query_head(tds, &head) != TDS_SUCCESS)
 				return NULL;
 
 			/* TDS4 and TDS7+ fill the whole packet with a query */

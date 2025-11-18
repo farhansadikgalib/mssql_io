@@ -59,8 +59,8 @@ static CS_INT _ct_map_compute_op(CS_INT comp_op);
 /* Added for CT_DIAG */
 /* Code changes starts here - CT_DIAG - 01 */
 
-static CS_INT ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG * message);
-static CS_INT ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG * message);
+static CS_INT ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * request, CS_CLIENTMSG * message);
+static CS_INT ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * request, CS_SERVERMSG * message);
 static CS_INT ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count);
 static CS_INT ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message);
 static CS_INT ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message);
@@ -589,7 +589,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		case CS_PACKETSIZE:
 			if (tds)
-				intval = tds->conn->env.block_size;
+				intval = tds->request->env.block_size;
 			else
 				intval = tds_login->block_size;
 			memcpy(buffer, &intval, sizeof(intval));
@@ -597,7 +597,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				*out_len = sizeof(intval);
 			break;
 		case CS_TDS_VERSION:
-			switch (tds->conn->tds_version) {
+			switch (tds->request->tds_version) {
 			case 0x400:
 				(*(int *) buffer = CS_TDS_40);
 				break;
@@ -2122,15 +2122,15 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_VARCHAR_TYPE:		return SYBVARCHAR;
 	case CS_LONG_TYPE:
 	case CS_UBIGINT_TYPE:
-		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_UINT8))
+		if (!tds || tds_capability_has_req(tds->request, TDS_REQ_DATA_UINT8))
 			return SYBUINT8;
 		return SYBINT8;
 	case CS_UINT_TYPE:
-		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_UINT4))
+		if (!tds || tds_capability_has_req(tds->request, TDS_REQ_DATA_UINT4))
 			return SYBUINT4;
 		return SYBINT4;
 	case CS_USMALLINT_TYPE:
-		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_UINT2))
+		if (!tds || tds_capability_has_req(tds->request, TDS_REQ_DATA_UINT2))
 			return SYBUINT2;
 		return SYBINT2;
 	case CS_BIGINT_TYPE:		return SYBINT8;
@@ -2151,23 +2151,23 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_LONGBINARY_TYPE:	return SYBLONGBINARY;
 	case CS_UNICHAR_TYPE:		return SYBVARCHAR;
 	case CS_LONGCHAR_TYPE:
-		if (!tds || IS_TDS7_PLUS(tds->conn))
+		if (!tds || IS_TDS7_PLUS(tds->request))
 			return SYBVARCHAR;
 		return SYBLONGCHAR;
 	case CS_DATE_TYPE:
-		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_DATE))
+		if (!tds || tds_capability_has_req(tds->request, TDS_REQ_DATA_DATE))
 			return SYBDATE;
 		return SYBDATETIME;
 	case CS_TIME_TYPE:
-		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_TIME))
+		if (!tds || tds_capability_has_req(tds->request, TDS_REQ_DATA_TIME))
 			return SYBTIME;
 		return SYBDATETIME;
 	case CS_BIGDATETIME_TYPE:
-		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_BIGDATETIME))
+		if (!tds || tds_capability_has_req(tds->request, TDS_REQ_DATA_BIGDATETIME))
 			return SYB5BIGDATETIME;
 		return SYBDATETIME;
 	case CS_BIGTIME_TYPE:
-		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_BIGTIME))
+		if (!tds || tds_capability_has_req(tds->request, TDS_REQ_DATA_BIGTIME))
 			return SYB5BIGTIME;
 		return SYBDATETIME;
 
@@ -2182,14 +2182,14 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 }
 
 CS_RETCODE
-ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
+ct_cancel(CS_CONNECTION * request, CS_COMMAND * cmd, CS_INT type)
 {
 	CS_RETCODE ret;
 	CS_COMMAND *cmds;
 	CS_COMMAND *conn_cmd;
 	CS_CONNECTION *cmd_conn;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_cancel(%p, %p, %d)\n", conn, cmd, type);
+	tdsdump_log(TDS_DBG_FUNC, "ct_cancel(%p, %p, %d)\n", request, cmd, type);
 
 	/*
 	 * Comments taken from Sybase ct-library reference manual
@@ -2207,7 +2207,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 
 
 		tdsdump_log(TDS_DBG_FUNC, "CS_CANCEL_CURRENT\n");
-		if (conn || !cmd)
+		if (request || !cmd)
 			return CS_FAIL;
 
 
@@ -2257,7 +2257,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 	 */
 
 	if (type == CS_CANCEL_ATTN) {
-		if ((conn && cmd) || (!conn && !cmd)) {
+		if ((request && cmd) || (!request && !cmd)) {
 			return CS_FAIL;
 		}
 		if (cmd) {
@@ -2279,9 +2279,9 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 					break;
 			}
 		}
-		if (conn) {
+		if (request) {
 			tdsdump_log(TDS_DBG_FUNC, "CS_CANCEL_ATTN with connection\n");
-			for (cmds = conn->cmds; cmds != NULL; cmds = cmds->next) {
+			for (cmds = request->cmds; cmds != NULL; cmds = cmds->next) {
 				conn_cmd = cmds;
 				switch (conn_cmd->command_state) {
 					case _CS_COMMAND_IDLE:
@@ -2292,7 +2292,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 						tdsdump_log(TDS_DBG_FUNC, "ct_cancel() command state SENT\n");
 						if (conn_cmd->results_state != _CS_RES_NONE) {
 							tdsdump_log(TDS_DBG_FUNC, "ct_cancel() sending a cancel \n");
-							tds_send_cancel(conn->tds_socket);
+							tds_send_cancel(request->tds_socket);
 							conn_cmd->cancel_state = _CS_CANCEL_PENDING;
 						}
 					break;
@@ -2334,7 +2334,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 
 	if (type == CS_CANCEL_ALL) {
 
-		if ((conn && cmd) || (!conn && !cmd)) {
+		if ((request && cmd) || (!request && !cmd)) {
 			return CS_FAIL;
 		}
 		if (cmd) {
@@ -2357,9 +2357,9 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 					break;
 			}
 		}
-		if (conn) {
+		if (request) {
 			tdsdump_log(TDS_DBG_FUNC, "CS_CANCEL_ALL with connection\n");
-			for (cmds = conn->cmds; cmds != NULL; cmds = cmds->next) {
+			for (cmds = request->cmds; cmds != NULL; cmds = cmds->next) {
 				tdsdump_log(TDS_DBG_FUNC, "ct_cancel() cancelling a command for a connection\n");
 				conn_cmd = cmds;
 				switch (conn_cmd->command_state) {
@@ -2372,8 +2372,8 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 					case _CS_COMMAND_SENT:
 						tdsdump_log(TDS_DBG_FUNC, "ct_cancel() command state SENT\n");
 						tdsdump_log(TDS_DBG_FUNC, "ct_cancel() sending a cancel \n");
-						tds_send_cancel(conn->tds_socket);
-						tds_process_cancel(conn->tds_socket);
+						tds_send_cancel(request->tds_socket);
+						tds_process_cancel(request->tds_socket);
 						_ct_initialise_cmd(conn_cmd);
 						conn_cmd->cancel_state = _CS_CANCEL_PENDING;
 					break;
@@ -3994,7 +3994,7 @@ _ct_process_return_status(TDSSOCKET * tds)
 
 	curcol = info->columns[0];
 
-	tds_set_column_type(tds->conn, curcol, SYBINT4);
+	tds_set_column_type(tds->request, curcol, SYBINT4);
 
 	tdsdump_log(TDS_DBG_INFO1, "generating return status row. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
@@ -4127,7 +4127,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			if (!tds_dstr_copy(&pcol->column_name, p->name))
 				goto memory_error;
 
-		tds_set_param_type(tds->conn, pcol, tds_type);
+		tds_set_param_type(tds->request, pcol, tds_type);
 
 		if (temp_datalen == CS_NULLTERM && temp_value)
 			temp_datalen = strlen((const char*) temp_value);
@@ -4330,58 +4330,58 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 /* Code changes start here - CT_DIAG - 02*/
 
 CS_RETCODE
-ct_diag(CS_CONNECTION * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer)
+ct_diag(CS_CONNECTION * request, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer)
 {
-	tdsdump_log(TDS_DBG_FUNC, "ct_diag(%p, %d, %d, %d, %p)\n", conn, operation, type, idx, buffer);
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag(%p, %d, %d, %d, %p)\n", request, operation, type, idx, buffer);
 
 	switch (operation) {
 	case CS_INIT:
-		if (conn->ctx->cs_errhandletype == _CS_ERRHAND_CB) {
+		if (request->ctx->cs_errhandletype == _CS_ERRHAND_CB) {
 			/* contrary to the manual page you don't seem to */
 			/* be able to turn on inline message handling    */
 			/* using cs_diag, once a callback is installed!  */
 			return CS_FAIL;
 		}
 
-		conn->ctx->cs_errhandletype = _CS_ERRHAND_INLINE;
+		request->ctx->cs_errhandletype = _CS_ERRHAND_INLINE;
 
-		if (conn->ctx->cs_diag_msglimit_client == 0)
-			conn->ctx->cs_diag_msglimit_client = CS_NO_LIMIT;
+		if (request->ctx->cs_diag_msglimit_client == 0)
+			request->ctx->cs_diag_msglimit_client = CS_NO_LIMIT;
 
-		if (conn->ctx->cs_diag_msglimit_server == 0)
-			conn->ctx->cs_diag_msglimit_server = CS_NO_LIMIT;
+		if (request->ctx->cs_diag_msglimit_server == 0)
+			request->ctx->cs_diag_msglimit_server = CS_NO_LIMIT;
 
-		if (conn->ctx->cs_diag_msglimit_total == 0)
-			conn->ctx->cs_diag_msglimit_total = CS_NO_LIMIT;
+		if (request->ctx->cs_diag_msglimit_total == 0)
+			request->ctx->cs_diag_msglimit_total = CS_NO_LIMIT;
 
-		conn->ctx->_clientmsg_cb = (CS_CLIENTMSG_FUNC) ct_diag_storeclientmsg;
-		conn->ctx->_servermsg_cb = (CS_SERVERMSG_FUNC) ct_diag_storeservermsg;
+		request->ctx->_clientmsg_cb = (CS_CLIENTMSG_FUNC) ct_diag_storeclientmsg;
+		request->ctx->_servermsg_cb = (CS_SERVERMSG_FUNC) ct_diag_storeservermsg;
 
 		break;
 
 	case CS_MSGLIMIT:
-		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+		if (request->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
 
 		if (type == CS_CLIENTMSG_TYPE)
-			conn->ctx->cs_diag_msglimit_client = *(CS_INT *) buffer;
+			request->ctx->cs_diag_msglimit_client = *(CS_INT *) buffer;
 
 		if (type == CS_SERVERMSG_TYPE)
-			conn->ctx->cs_diag_msglimit_server = *(CS_INT *) buffer;
+			request->ctx->cs_diag_msglimit_server = *(CS_INT *) buffer;
 
 		if (type == CS_ALLMSG_TYPE)
-			conn->ctx->cs_diag_msglimit_total = *(CS_INT *) buffer;
+			request->ctx->cs_diag_msglimit_total = *(CS_INT *) buffer;
 
 		break;
 
 	case CS_CLEAR:
-		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+		if (request->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
-		return _ct_diag_clearmsg(conn->ctx, type);
+		return _ct_diag_clearmsg(request->ctx, type);
 		break;
 
 	case CS_GET:
-		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+		if (request->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
 
 		if (!buffer)
@@ -4389,46 +4389,46 @@ ct_diag(CS_CONNECTION * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID
 
 		if (type == CS_CLIENTMSG_TYPE) {
 			if (idx == 0
-			    || (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_client))
+			    || (request->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && idx > request->ctx->cs_diag_msglimit_client))
 				return CS_FAIL;
 
-			return (ct_diag_getclientmsg(conn->ctx, idx, (CS_CLIENTMSG *) buffer));
+			return (ct_diag_getclientmsg(request->ctx, idx, (CS_CLIENTMSG *) buffer));
 		}
 
 		if (type == CS_SERVERMSG_TYPE) {
 			if (idx == 0
-			    || (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && idx > conn->ctx->cs_diag_msglimit_server))
+			    || (request->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && idx > request->ctx->cs_diag_msglimit_server))
 				return CS_FAIL;
-			return (ct_diag_getservermsg(conn->ctx, idx, (CS_SERVERMSG *) buffer));
+			return (ct_diag_getservermsg(request->ctx, idx, (CS_SERVERMSG *) buffer));
 		}
 
 		break;
 
 	case CS_STATUS:
-		if (conn->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
+		if (request->ctx->cs_errhandletype != _CS_ERRHAND_INLINE)
 			return CS_FAIL;
 		if (!buffer)
 			return CS_FAIL;
 
-		return (ct_diag_countmsg(conn->ctx, type, (CS_INT *) buffer));
+		return (ct_diag_countmsg(request->ctx, type, (CS_INT *) buffer));
 		break;
 	}
 	return CS_SUCCEED;
 }
 
 static CS_INT
-ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG * message)
+ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * request, CS_CLIENTMSG * message)
 {
 	struct cs_diag_msg_client **curptr;
 	struct cs_diag_msg_svr **scurptr;
 
 	CS_INT msg_count = 0;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeclientmsg(%p, %p, %p)\n", context, conn, message);
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeclientmsg(%p, %p, %p)\n", context, request, message);
 
-	curptr = &(conn->ctx->clientstore);
+	curptr = &(request->ctx->clientstore);
 
-	scurptr = &(conn->ctx->svrstore);
+	scurptr = &(request->ctx->svrstore);
 
 	/* if we already have a list of messages, go to the end of the list... */
 
@@ -4440,19 +4440,19 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 	/* messages over and above the agreed limit */
 	/* are simply discarded...                  */
 
-	if (conn->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && msg_count >= conn->ctx->cs_diag_msglimit_client) {
+	if (request->ctx->cs_diag_msglimit_client != CS_NO_LIMIT && msg_count >= request->ctx->cs_diag_msglimit_client) {
 		return CS_FAIL;
 	}
 
 	/* messages over and above the agreed TOTAL limit */
 	/* are simply discarded */
 
-	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
+	if (request->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
 		while (*scurptr != NULL) {
 			msg_count++;
 			scurptr = &((*scurptr)->next);
 		}
-		if (msg_count >= conn->ctx->cs_diag_msglimit_total) {
+		if (msg_count >= request->ctx->cs_diag_msglimit_total) {
 			return CS_FAIL;
 		}
 	}
@@ -4472,17 +4472,17 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 }
 
 static CS_INT
-ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG * message)
+ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * request, CS_SERVERMSG * message)
 {
 	struct cs_diag_msg_svr **curptr;
 	struct cs_diag_msg_client **ccurptr;
 
 	CS_INT msg_count = 0;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeservermsg(%p, %p, %p)\n", context, conn, message);
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeservermsg(%p, %p, %p)\n", context, request, message);
 
-	curptr = &(conn->ctx->svrstore);
-	ccurptr = &(conn->ctx->clientstore);
+	curptr = &(request->ctx->svrstore);
+	ccurptr = &(request->ctx->clientstore);
 
 	/* if we already have a list of messages, go to the end of the list...  */
 
@@ -4494,19 +4494,19 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 	/* messages over and above the agreed limit */
 	/* are simply discarded...                  */
 
-	if (conn->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && msg_count >= conn->ctx->cs_diag_msglimit_server) {
+	if (request->ctx->cs_diag_msglimit_server != CS_NO_LIMIT && msg_count >= request->ctx->cs_diag_msglimit_server) {
 		return CS_FAIL;
 	}
 
 	/* messages over and above the agreed TOTAL limit */
 	/* are simply discarded...                  */
 
-	if (conn->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
+	if (request->ctx->cs_diag_msglimit_total != CS_NO_LIMIT) {
 		while (*ccurptr != NULL) {
 			msg_count++;
 			ccurptr = &((*ccurptr)->next);
 		}
-		if (msg_count >= conn->ctx->cs_diag_msglimit_total) {
+		if (msg_count >= request->ctx->cs_diag_msglimit_total) {
 			return CS_FAIL;
 		}
 	}

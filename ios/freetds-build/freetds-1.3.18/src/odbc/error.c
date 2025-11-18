@@ -719,8 +719,8 @@ ODBC_FUNC(SQLGetDiagField, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQ
 		break;
 
 	case SQL_DIAG_CONNECTION_NAME:
-		if (dbc && dbc->tds_socket && dbc->tds_socket->conn->spid > 0)
-			cplen = sprintf(tmp, "%d", dbc->tds_socket->conn->spid);
+		if (dbc && dbc->tds_socket && dbc->tds_socket->request->spid > 0)
+			cplen = sprintf(tmp, "%d", dbc->tds_socket->request->spid);
 		else
 			cplen = 0;
 
@@ -743,11 +743,11 @@ ODBC_FUNC(SQLGetDiagField, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQ
 			break;
 		case SQL_HANDLE_DBC:
 			if (dbc->tds_socket)
-				msg = dbc->tds_socket->conn->server;
+				msg = dbc->tds_socket->request->server;
 			break;
 		case SQL_HANDLE_STMT:
 			if (stmt->dbc->tds_socket)
-				msg = stmt->dbc->tds_socket->conn->server;
+				msg = stmt->dbc->tds_socket->request->server;
 			/*
 			 * if dbc->server is not initialized, init it
 			 * from the errs structure

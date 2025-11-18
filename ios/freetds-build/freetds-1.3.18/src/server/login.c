@@ -121,7 +121,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	tds_set_s(tds, fd);
 	tds->out_flag = TDS_LOGIN;
 	/* TODO proper charset */
-	tds_iconv_open(tds->conn, "ISO8859-1", 0);
+	tds_iconv_open(tds->request, "ISO8859-1", 0);
 	/* get_incoming(tds->s); */
 	tds->state = TDS_IDLE;
 	return tds;
@@ -198,7 +198,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	/* sql type (byte) + flag3 (byte) + timezone (int) + collation (4 byte) */
 	tds_get_n(tds, NULL, 10);
 
-	packet_start = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
+	packet_start = IS_TDS72_PLUS(tds->request) ? 86 + 8 : 86;	/* ? */
 	if (packet_len < packet_start)
 		return 0;
 
@@ -266,9 +266,9 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds7_decrypt_pass((unsigned char *) unicode_string, unicode_len, (unsigned char *) unicode_string);
 	pbuf = tds_dstr_buf(&login->password);
 	
-	memset(&tds->conn->char_convs[client2ucs2]->suppress, 0, sizeof(tds->conn->char_convs[client2ucs2]->suppress));
+	memset(&tds->request->char_convs[client2ucs2]->suppress, 0, sizeof(tds->request->char_convs[client2ucs2]->suppress));
 	psrc = unicode_string;
-	a = tds_iconv(tds, tds->conn->char_convs[client2ucs2], to_client, (const char **) &psrc, &unicode_len, &pbuf,
+	a = tds_iconv(tds, tds->request->char_convs[client2ucs2], to_client, (const char **) &psrc, &unicode_len, &pbuf,
 			 &password_len);
 	if (a < 0 ) {
 		fprintf(stderr, "error: %s:%d: tds7_read_login: tds_iconv() failed\n", __FILE__, __LINE__);
@@ -346,7 +346,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 	/* Use the packet type to determine which login format to expect */
 	switch (tds->in_flag) {
 	case TDS_LOGIN: /* TDS4/5 login */
-		tds->conn->tds_version = 0x402;
+		tds->request->tds_version = 0x402;
 		if (!tds_read_login(tds, login)) {
 			tds_free_login(login);
 			return NULL;
@@ -357,7 +357,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 		break;
 
 	case TDS7_LOGIN: /* TDS7+ login */
-		tds->conn->tds_version = 0x700;
+		tds->request->tds_version = 0x700;
 		if (!tds7_read_login(tds, login)) {
 			tds_free_login(login);
 			return NULL;
@@ -365,7 +365,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 		break;
 
 	case TDS71_PRELOGIN: /* TDS7.1+ prelogin, hopefully followed by a login */
-		tds->conn->tds_version = 0x701;
+		tds->request->tds_version = 0x701;
 		/* ignore client and just send our reply TODO... finish */
 		tds71_send_prelogin(tds);
 		tds_flush_packet(tds);

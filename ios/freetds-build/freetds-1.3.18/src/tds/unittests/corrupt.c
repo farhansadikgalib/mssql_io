@@ -41,13 +41,13 @@ unfinished_query_test(TDSSOCKET *tds)
 		char buf[8];
 	} conv;
 
-	if (IS_TDS72_PLUS(tds->conn))
+	if (IS_TDS72_PLUS(tds->request))
 		return;
 
 	tds_init_write_buf(tds);
 
 	/* try to build an invalid (unfinished) query split in two packets */
-	char_len = IS_TDS7_PLUS(tds->conn) ? 2 : 1;
+	char_len = IS_TDS7_PLUS(tds->request) ? 2 : 1;
 	buf = tds_new0(char, tds->out_buf_max + 200);
 	memset(buf, '-', tds->out_buf_max + 200);
 	strcpy(buf + (tds->out_buf_max - 8) / char_len - strlen(select_query) + 1, select_query);
@@ -58,7 +58,7 @@ unfinished_query_test(TDSSOCKET *tds)
 	for (i = len; --i >= 0; ) {
 		char c = buf[i];
 		buf[i * char_len + 0] = c;
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(tds->request))
 			buf[i * char_len + 1] = 0;
 	}
 	len *= char_len;

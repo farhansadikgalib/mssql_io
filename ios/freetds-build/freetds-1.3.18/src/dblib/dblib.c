@@ -4104,7 +4104,7 @@ dbgetpacket(DBPROCESS * dbproc)
 	if (!tds) {
 		return TDS_DEF_BLKSZ;
 	} else {
-		return tds->conn->env.block_size;
+		return tds->request->env.block_size;
 	}
 }
 
@@ -5943,7 +5943,7 @@ dbspid(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "dbspid(%p)\n", dbproc);
 	CHECK_CONN(-1);
 
-	return dbproc->tds_socket->conn->spid;
+	return dbproc->tds_socket->request->spid;
 }
 
 /**
@@ -6825,7 +6825,7 @@ dbtds(DBPROCESS * dbproc)
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	if (dbproc->tds_socket) {
-		switch (dbproc->tds_socket->conn->tds_version) {
+		switch (dbproc->tds_socket->request->tds_version) {
 		case 0x402:
 			return DBTDS_4_2;
 		case 0x406:

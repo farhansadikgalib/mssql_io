@@ -489,7 +489,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>tds7_put_curso
 <tr class="memitem:ga0cd19215e9169ea299a6c9cbf5b2fb60"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga0cd19215e9169ea299a6c9cbf5b2fb60">tds_count_placeholders_ucs2le</a> (const char *query, const char *query_end)</td></tr>
 <tr class="memdesc:ga0cd19215e9169ea299a6c9cbf5b2fb60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count the number of placeholders ('?') in a query.  <a href="a00563.html#ga0cd19215e9169ea299a6c9cbf5b2fb60">More...</a><br /></td></tr>
 <tr class="separator:ga0cd19215e9169ea299a6c9cbf5b2fb60"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2a64baaf4aa50ef601a49b801dfdaaf6"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga2a64baaf4aa50ef601a49b801dfdaaf6">tds_cursor_check_allocated</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor)</td></tr>
+<tr class="memitem:ga2a64baaf4aa50ef601a49b801dfdaaf6"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga2a64baaf4aa50ef601a49b801dfdaaf6">tds_cursor_check_allocated</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor)</td></tr>
 <tr class="memdesc:ga2a64baaf4aa50ef601a49b801dfdaaf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if a cursor is allocated into the server.  <a href="a00563.html#ga2a64baaf4aa50ef601a49b801dfdaaf6">More...</a><br /></td></tr>
 <tr class="separator:ga2a64baaf4aa50ef601a49b801dfdaaf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gada22769a0a8593608044b99e8e7aecba"><td class="memItemLeft" align="right" valign="top"><a id="gada22769a0a8593608044b99e8e7aecba"></a>
@@ -520,10 +520,10 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_cursor_setrows<
 <tr class="memitem:gae6c9d512bccc537638d60f987fd5a876"><td class="memItemLeft" align="right" valign="top"><a id="gae6c9d512bccc537638d60f987fd5a876"></a>
 TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_cursor_update</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, <a class="el" href="a01183.html">TDSPARAMINFO</a> *params)</td></tr>
 <tr class="separator:gae6c9d512bccc537638d60f987fd5a876"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga57bd0fabe5bcdeb3ef091259b3a7c1fc"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga57bd0fabe5bcdeb3ef091259b3a7c1fc">tds_deferred_cursor_dealloc</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor)</td></tr>
+<tr class="memitem:ga57bd0fabe5bcdeb3ef091259b3a7c1fc"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga57bd0fabe5bcdeb3ef091259b3a7c1fc">tds_deferred_cursor_dealloc</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#afe061eb245f3006d93940a20415692a7">TDSCURSOR</a> *cursor)</td></tr>
 <tr class="memdesc:ga57bd0fabe5bcdeb3ef091259b3a7c1fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate cursor on idle.  <a href="a00563.html#ga57bd0fabe5bcdeb3ef091259b3a7c1fc">More...</a><br /></td></tr>
 <tr class="separator:ga57bd0fabe5bcdeb3ef091259b3a7c1fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9f80fdf732b084aef7de7a323261aa61"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga9f80fdf732b084aef7de7a323261aa61">tds_deferred_unprepare</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
+<tr class="memitem:ga9f80fdf732b084aef7de7a323261aa61"><td class="memItemLeft" align="right" valign="top">TDSRET&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga9f80fdf732b084aef7de7a323261aa61">tds_deferred_unprepare</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
 <tr class="memdesc:ga9f80fdf732b084aef7de7a323261aa61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unprepare dynamic on idle.  <a href="a00563.html#ga9f80fdf732b084aef7de7a323261aa61">More...</a><br /></td></tr>
 <tr class="separator:ga9f80fdf732b084aef7de7a323261aa61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga328b6111fc8b1342924161a6f031d0db"><td class="memItemLeft" align="right" valign="top"><a id="ga328b6111fc8b1342924161a6f031d0db"></a>
@@ -548,7 +548,7 @@ TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_multiple_init</
 <tr class="memitem:ga2831db8f158c9bd31dfac08f63adffa5"><td class="memItemLeft" align="right" valign="top"><a id="ga2831db8f158c9bd31dfac08f63adffa5"></a>
 TDSRET&#160;</td><td class="memItemRight" valign="bottom"><b>tds_multiple_query</b> (<a class="el" href="a01235.html">TDSSOCKET</a> *tds, <a class="el" href="a01211.html">TDSMULTIPLE</a> *multiple, const char *query, <a class="el" href="a01183.html">TDSPARAMINFO</a> *params)</td></tr>
 <tr class="separator:ga2831db8f158c9bd31dfac08f63adffa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga05ac7bab753d19b6ba1ffc7505d8fcd0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga05ac7bab753d19b6ba1ffc7505d8fcd0">tds_needs_unprepare</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *conn, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
+<tr class="memitem:ga05ac7bab753d19b6ba1ffc7505d8fcd0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga05ac7bab753d19b6ba1ffc7505d8fcd0">tds_needs_unprepare</a> (<a class="el" href="a01231.html">TDSCONNECTION</a> *request, <a class="el" href="a00449.html#a856d78b7438fef3d6e6c0a8e4566d978">TDSDYNAMIC</a> *dyn)</td></tr>
 <tr class="memdesc:ga05ac7bab753d19b6ba1ffc7505d8fcd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if dynamic request must be unprepared.  <a href="a00563.html#ga05ac7bab753d19b6ba1ffc7505d8fcd0">More...</a><br /></td></tr>
 <tr class="separator:ga05ac7bab753d19b6ba1ffc7505d8fcd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6455b2991afbf7da90270787f2059d31"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00563.html#ga6455b2991afbf7da90270787f2059d31">tds_next_placeholder</a> (const char *start)</td></tr>
@@ -1367,7 +1367,7 @@ Here is the call graph for this function:</div>
           <td class="memname">static bool tds_cursor_check_allocated </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1415,7 +1415,7 @@ Here is the caller graph for this function:</div>
           <td class="memname">TDSRET tds_deferred_cursor_dealloc </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1458,7 +1458,7 @@ Here is the call graph for this function:</div>
           <td class="memname">TDSRET tds_deferred_unprepare </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1558,7 +1558,7 @@ Here is the caller graph for this function:</div>
           <td class="memname">int tds_needs_unprepare </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="a01231.html">TDSCONNECTION</a> *&#160;</td>
-          <td class="paramname"><em>conn</em>, </td>
+          <td class="paramname"><em>request</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

@@ -204,9 +204,9 @@
 #include <freetds/stream.h>
 #include <freetds/data.h>
 
-#define USE_ICONV (tds->conn->use_iconv)
+#define USE_ICONV (tds->request->use_iconv)
 
-static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
+static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *request, int type);
 static void tds_swap_numeric(TDS_NUMERIC *num);
 
 #undef MIN
@@ -221,16 +221,16 @@ static void tds_swap_numeric(TDS_NUMERIC *num);
  * @param type   type to set
  */
 void
-tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
+tds_set_column_type(TDSCONNECTION * request, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 {
 	/* set type */
 	curcol->on_server.column_type = type;
-	curcol->funcs = tds_get_column_funcs(conn, type);
+	curcol->funcs = tds_get_column_funcs(request, type);
 	curcol->column_type = tds_get_cardinal_type(type, curcol->column_usertype);
 
 	/* set size */
 	curcol->column_cur_size = -1;
-	curcol->column_varint_size = tds_get_varint_size(conn, type);
+	curcol->column_varint_size = tds_get_varint_size(request, type);
 	if (curcol->column_varint_size == 0)
 		curcol->column_cur_size = curcol->on_server.column_size = curcol->column_size = tds_get_size_by_type(type);
 
@@ -243,9 +243,9 @@ tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE ty
  * \param type   type to set
  */
 void
-tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
+tds_set_param_type(TDSCONNECTION * request, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 {
-	if (IS_TDS7_PLUS(conn)) {
+	if (IS_TDS7_PLUS(request)) {
 		switch (type) {
 		case SYBVARCHAR:
 			type = XSYBVARCHAR;
@@ -266,7 +266,7 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 		default:
 			break;
 		}
-	} else if (IS_TDS50(conn)) {
+	} else if (IS_TDS50(request)) {
 		switch (type) {
 		case SYBINT8:
 			type = SYB5INT8;
@@ -276,11 +276,11 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 			break;
 		}
 	}
-	tds_set_column_type(conn, curcol, type);
+	tds_set_column_type(request, curcol, type);
 
 	if (is_collate_type(type) || is_char_type(type)) {
-		curcol->char_conv = conn->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
-		memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
+		curcol->char_conv = request->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
+		memcpy(curcol->column_collation, request->collation, sizeof(request->collation));
 	}
 
 	/* special case, GUID, varint != 0 but only a size */
@@ -320,19 +320,19 @@ tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE typ
 		curcol->column_cur_size = -1;
 		break;
 	case SYBNTEXT:
-		if (IS_TDS72_PLUS(conn)) {
+		if (IS_TDS72_PLUS(request)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBNVARCHAR;
 		}
 		break;
 	case SYBTEXT:
-		if (IS_TDS72_PLUS(conn)) {
+		if (IS_TDS72_PLUS(request)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBVARCHAR;
 		}
 		break;
 	case SYBIMAGE:
-		if (IS_TDS72_PLUS(conn)) {
+		if (IS_TDS72_PLUS(request)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBVARBINARY;
 		}
@@ -397,7 +397,7 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		/* assure > 0 */
 		col->column_size = tds_get_smallint(tds);
 		/* under TDS7.2 this means ?var???(MAX) */
-		if (col->column_size < 0 && IS_TDS72_PLUS(tds->conn)) {
+		if (col->column_size < 0 && IS_TDS72_PLUS(tds->request)) {
 			if (is_char_type(col->column_type))
 				col->column_size = 0x3ffffffflu;
 			else
@@ -416,7 +416,7 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		break;
 	}
 
-	if (IS_TDS71_PLUS(tds->conn) && is_collate_type(col->on_server.column_type)) {
+	if (IS_TDS71_PLUS(tds->request) && is_collate_type(col->on_server.column_type)) {
 		/* based on true type as sent by server */
 		/*
 		 * first 2 bytes are windows code (such as 0x409 for english)
@@ -425,13 +425,13 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		 */
 		tds_get_n(tds, col->column_collation, 5);
 		col->char_conv =
-			tds_iconv_from_collate(tds->conn, col->column_collation);
+			tds_iconv_from_collate(tds->request, col->column_collation);
 	}
 
 	/* Only read table_name for blob columns (eg. not for SYBLONGBINARY) */
 	if (is_blob_type(col->on_server.column_type)) {
 		/* discard this additional byte */
-		if (IS_TDS72_PLUS(tds->conn)) {
+		if (IS_TDS72_PLUS(tds->request)) {
 			unsigned char num_parts = tds_get_byte(tds);
 			/* TODO do not discard first ones */
 			for (; num_parts; --num_parts) {
@@ -440,7 +440,7 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		} else {
 			tds_dstr_get(tds, &col->table_name, tds_get_usmallint(tds));
 		}
-	} else if (IS_TDS72_PLUS(tds->conn) && col->on_server.column_type == SYBMSXML) {
+	} else if (IS_TDS72_PLUS(tds->request) && col->on_server.column_type == SYBMSXML) {
 		unsigned char has_schema = tds_get_byte(tds);
 		if (has_schema) {
 			/* discard schema informations */
@@ -594,7 +594,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		colsize -= sizeof(v->collation);
 		info_len -= sizeof(v->collation);
 		curcol->char_conv = is_unicode_type(type) ? 
-			tds->conn->char_convs[client2ucs2] : tds_iconv_from_collate(tds->conn, v->collation);
+			tds->request->char_convs[client2ucs2] : tds_iconv_from_collate(tds->request, v->collation);
 	}
 
 	/* special case for numeric */
@@ -620,7 +620,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			goto error_type;
 		curcol->column_cur_size = colsize;
 		tds_get_n(tds, num->array, colsize);
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(tds->request))
 			tds_swap_numeric(num);
 		return TDS_SUCCESS;
 	}
@@ -657,7 +657,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	default:
 		break;
 	}
-	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds->conn, type);
+	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds->request, type);
 	if (varint != info_len || varint > 2)
 		goto error_type;
 	switch (varint) {
@@ -730,7 +730,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_get_n(tds, blob->textptr, 16);
 			tds_get_n(tds, blob->timestamp, 8);
 			blob->valid_ptr = 1;
-			if (IS_TDS72_PLUS(tds->conn) &&
+			if (IS_TDS72_PLUS(tds->request) &&
 			    memcmp(blob->textptr, "dummy textptr\0\0",16) == 0)
 				blob->valid_ptr = 0;
 			colsize = tds_get_int(tds);
@@ -899,12 +899,12 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	}
 
 	/* TDS5 wants a table name for LOBs */
-	if (IS_TDS50(tds->conn) && is_blob_type(col->on_server.column_type))
+	if (IS_TDS50(tds->request) && is_blob_type(col->on_server.column_type))
 		tds_put_smallint(tds, 0);
 
 	/* TDS7.1 output collate information */
-	if (IS_TDS71_PLUS(tds->conn) && is_collate_type(col->on_server.column_type))
-		tds_put_n(tds, tds->conn->collation, 5);
+	if (IS_TDS71_PLUS(tds->request) && is_collate_type(col->on_server.column_type))
+		tds_put_n(tds, tds->request->collation, 5);
 
 	return TDS_SUCCESS;
 }
@@ -938,7 +938,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 			tds_put_int(tds, 0);
 			break;
 		case 4:
-			if ((bcp7 || !IS_TDS7_PLUS(tds->conn)) && is_blob_type(curcol->on_server.column_type))
+			if ((bcp7 || !IS_TDS7_PLUS(tds->request)) && is_blob_type(curcol->on_server.column_type))
 				tds_put_byte(tds, 0);
 			else
 				tds_put_int(tds, -1);
@@ -999,7 +999,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 	 * and inform client ??
 	 * Test proprietary behavior
 	 */
-	if (IS_TDS7_PLUS(tds->conn)) {
+	if (IS_TDS7_PLUS(tds->request)) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: not null param varint_size = %d\n",
 			    curcol->column_varint_size);
 
@@ -1184,7 +1184,7 @@ tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		return TDS_FAIL;
 	tds_get_n(tds, num->array, colsize);
 
-	if (IS_TDS7_PLUS(tds->conn))
+	if (IS_TDS7_PLUS(tds->request))
 		tds_swap_numeric(num);
 
 	/* corrected colsize for column_cur_size */
@@ -1227,7 +1227,7 @@ tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 	tds_put_byte(tds, colsize);
 
 	buf = *num;
-	if (IS_TDS7_PLUS(tds->conn))
+	if (IS_TDS7_PLUS(tds->request))
 		tds_swap_numeric(&buf);
 	tds_put_n(tds, buf.array, colsize);
 	return TDS_SUCCESS;
@@ -1601,7 +1601,7 @@ TDS_DECLARE_FUNCS(invalid);
 #include <freetds/popvis.h>
 
 static const TDSCOLUMNFUNCS *
-tds_get_column_funcs(TDSCONNECTION *conn, int type)
+tds_get_column_funcs(TDSCONNECTION *request, int type)
 {
 	switch (type) {
 	case SYBNUMERIC:
@@ -1610,7 +1610,7 @@ tds_get_column_funcs(TDSCONNECTION *conn, int type)
 	case SYBMSUDT:
 		return &tds_clrudt_funcs;
 	case SYBVARIANT:
-		if (IS_TDS7_PLUS(conn))
+		if (IS_TDS7_PLUS(request))
 			return &tds_variant_funcs;
 		break;
 	case SYBMSDATE:

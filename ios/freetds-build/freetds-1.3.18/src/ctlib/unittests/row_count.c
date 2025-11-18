@@ -71,7 +71,7 @@
 #include <freetds/replacements.h>
 
 static CS_CONTEXT *ctx;
-static CS_CONNECTION *conn;
+static CS_CONNECTION *request;
 static CS_COMMAND *cmd;
 
 static CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 	CS_RETCODE ret;
 
 	printf("%s: check row count returned\n", __FILE__);
-	ret = try_ctlogin(&ctx, &conn, &cmd, 0);
+	ret = try_ctlogin(&ctx, &request, &cmd, 0);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 	if (test(0, 1) || test(1, 1))
 		return 1;
 
-	ret = try_ctlogout(ctx, conn, cmd, 0);
+	ret = try_ctlogout(ctx, request, cmd, 0);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;

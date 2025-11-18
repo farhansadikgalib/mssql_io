@@ -16,7 +16,7 @@ int
 main(int argc, char *argv[])
 {
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
+	CS_CONNECTION *request;
 	CS_COMMAND *cmd;
 	int verbose = 0;
 
@@ -39,20 +39,20 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin_with_options(argc, argv, &ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin_with_options(argc, argv, &ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
 	}
 	verbose += common_pwd.fverbose;
 
-	ret = ct_con_props(conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
+	ret = ct_con_props(request, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
 	if (ret == CS_SUCCEED) {
 		switch (tds_version) {
 		case CS_TDS_70:
 		case CS_TDS_71:
 			fprintf(stderr, "This TDS version does not support XML.\n");
-			try_ctlogout(ctx, conn, cmd, verbose);
+			try_ctlogout(ctx, request, cmd, verbose);
 			return 0;
 		}
 	}
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	switch (result_type) {
 	case CS_CMD_FAIL:
 		fprintf(stderr, "ct_results() result_type CS_CMD_FAIL, probably not MSSQL.\n");
-		try_ctlogout(ctx, conn, cmd, verbose);
+		try_ctlogout(ctx, request, cmd, verbose);
 		return 0;
 	case CS_ROW_RESULT:
 		break;
@@ -119,12 +119,12 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	assert(ret == CS_SUCCEED);
 
 	return 0;
 
 Cleanup:
-	try_ctlogout(ctx, conn, cmd, verbose);
+	try_ctlogout(ctx, request, cmd, verbose);
 	return 1;
 }

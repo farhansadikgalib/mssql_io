@@ -15,7 +15,7 @@ main(int argc, char *argv[])
 	int verbose = 0;
 
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
+	CS_CONNECTION *request;
 	CS_COMMAND *cmd;
 	CS_RETCODE ret;
 
@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 		strcpy(common_pwd.PASSWORD, argv[4]);
 	}
 
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
@@ -45,14 +45,14 @@ main(int argc, char *argv[])
 
 	/* DATEFIRST */
 	datefirst = CS_OPT_WEDNESDAY;
-	if (ct_options(conn, CS_SET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_options(request, CS_SET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
 
 	datefirst = 999;
 
-	if (ct_options(conn, CS_GET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_options(request, CS_GET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
@@ -65,14 +65,14 @@ main(int argc, char *argv[])
 
 	/* DATEFORMAT */
 	dateformat = CS_OPT_FMTMYD;
-	if (ct_options(conn, CS_SET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_options(request, CS_SET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
 
 	dateformat = 999;
 
-	if (ct_options(conn, CS_GET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_options(request, CS_GET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
@@ -84,13 +84,13 @@ main(int argc, char *argv[])
 	printf("%s: Set/Retrieve ANSINULL\n", __FILE__);
 	/* ANSI NULLS */
 	truefalse = CS_TRUE;
-	if (ct_options(conn, CS_SET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_options(request, CS_SET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
 
 	truefalse = 999;
-	if (ct_options(conn, CS_GET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_options(request, CS_GET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
@@ -102,13 +102,13 @@ main(int argc, char *argv[])
 	printf("%s: Set/Retrieve CHAINXACTS\n", __FILE__);
 	/* CHAINED XACT */
 	truefalse = CS_TRUE;
-	if (ct_options(conn, CS_SET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_options(request, CS_SET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
 
 	truefalse = 999;
-	if (ct_options(conn, CS_GET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
+	if (ct_options(request, CS_GET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
 		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
@@ -120,7 +120,7 @@ main(int argc, char *argv[])
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;

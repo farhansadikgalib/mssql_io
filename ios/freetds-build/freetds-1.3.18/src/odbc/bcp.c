@@ -114,7 +114,7 @@ odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
 	/*
 	 * Validate other parameters
 	 */
-	if (dbc->tds_socket->conn->tds_version < 0x500)
+	if (dbc->tds_socket->request->tds_version < 0x500)
 		ODBCBCP_ERROR_RETURN("HYC00");
 
 	if (direction != BCP_DIRECTION_IN || hfile || errfile)
@@ -131,7 +131,7 @@ odbc_bcp_init(TDS_DBC *dbc, const ODBC_CHAR *tblname, const ODBC_CHAR *hfile,
 		ODBCBCP_ERROR_RETURN("HY001");
 	}
 
-	if (tds_dstr_len(&dbc->bcpinfo->tablename) > 92 && !IS_TDS7_PLUS(dbc->tds_socket->conn)) { 	/* 30.30.30 */
+	if (tds_dstr_len(&dbc->bcpinfo->tablename) > 92 && !IS_TDS7_PLUS(dbc->tds_socket->request)) { 	/* 30.30.30 */
 		odbc_bcp_free_storage(dbc);
 		ODBCBCP_ERROR_RETURN("HYC00");
 	}

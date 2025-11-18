@@ -52,7 +52,7 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 {
 	int desttype;
 
-	tds->conn->tds_version = TDSVER_MS;
+	tds->request->tds_version = TDSVER_MS;
 
 	/*
 	 * Test every type
@@ -66,15 +66,15 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 		if (!is_tds_type_valid(desttype))
 			continue;
 
-		tds->conn->tds_version = TDSVER_MS;
+		tds->request->tds_version = TDSVER_MS;
 
 		/* if is only Sybase change version to Sybase */
-		varint = tds_get_varint_size(tds->conn, desttype);
-		tds->conn->tds_version ^= TDSVER_MS ^ TDSVER_SYB;
-		other_varint = tds_get_varint_size(tds->conn, desttype);
-		tds->conn->tds_version ^= TDSVER_MS ^ TDSVER_SYB;
+		varint = tds_get_varint_size(tds->request, desttype);
+		tds->request->tds_version ^= TDSVER_MS ^ TDSVER_SYB;
+		other_varint = tds_get_varint_size(tds->request, desttype);
+		tds->request->tds_version ^= TDSVER_MS ^ TDSVER_SYB;
 		if (varint == 1 && varint != other_varint)
-			tds->conn->tds_version = TDSVER_SYB;
+			tds->request->tds_version = TDSVER_SYB;
 
 		server_type = desttype;
 		switch (desttype) {
@@ -95,7 +95,7 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 			*types++ = SYBUINT2;
 			*types++ = SYBUINT4;
 			*types++ = SYBUINT8;
-			tds->conn->tds_version = TDSVER_SYB;
+			tds->request->tds_version = TDSVER_SYB;
 			break;
 		case SYBFLTN:
 			*types++ = SYBREAL;
@@ -111,11 +111,11 @@ void tds_all_types(TDSSOCKET *tds, tds_any_type_t *func)
 			break;
 		case SYBDATEN:
 			*types++ = SYBDATE;
-			tds->conn->tds_version = TDSVER_SYB;
+			tds->request->tds_version = TDSVER_SYB;
 			break;
 		case SYBTIMEN:
 			*types++ = SYBTIME;
-			tds->conn->tds_version = TDSVER_SYB;
+			tds->request->tds_version = TDSVER_SYB;
 			break;
 		case SYB5INT8:
 			*types++ = SYBINT8;
@@ -260,7 +260,7 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 	curcol = results->columns[0];
 	assert(curcol);
 
-	tds_set_column_type(tds->conn, curcol, server_type);
+	tds_set_column_type(tds->request, curcol, server_type);
 	curcol->on_server.column_size = curcol->column_size = curcol->column_cur_size = result;
 	if (is_numeric_type(desttype)) {
 		curcol->column_prec = cr.n.precision;
@@ -291,14 +291,14 @@ static void create_type(TDSSOCKET *tds, int desttype, int server_type, tds_any_t
 		TDSVARIANT *v;
 		TDSCOLUMN *basecol;
 
-		tds->conn->tds_version = TDSVER_MS;
+		tds->request->tds_version = TDSVER_MS;
 
 		results = tds_alloc_param_result(results);
 		assert(results);
 
 		basecol = results->columns[0];
 		curcol = results->columns[1];
-		tds_set_column_type(tds->conn, curcol, SYBVARIANT);
+		tds_set_column_type(tds->request, curcol, SYBVARIANT);
 		CHECK_COLUMN_EXTRA(curcol);
 
 		tds_alloc_param_data(curcol);

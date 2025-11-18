@@ -15,7 +15,7 @@ main(int argc, char **argv)
 {
 	int verbose = 1;
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
+	CS_CONNECTION *request;
 	CS_COMMAND *cmd;
 	CS_RETCODE ret;
 	CS_DATAFMT srcfmt;
@@ -88,7 +88,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying login\n");
 	}
-	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
+	ret = try_ctlogin(&ctx, &request, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
@@ -97,7 +97,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying clientmsg_cb with connection\n");
 	}
-	ret = ct_callback(NULL, conn, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) clientmsg_cb);
+	ret = ct_callback(NULL, request, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) clientmsg_cb);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_callback() failed\n");
 		return 1;
@@ -116,7 +116,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying servermsg_cb with connection\n");
 	}
-	ret = ct_callback(NULL, conn, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) servermsg_cb);
+	ret = ct_callback(NULL, request, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) servermsg_cb);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_callback() failed\n");
 		return 1;
@@ -140,7 +140,7 @@ main(int argc, char **argv)
 	if (verbose) {
 		printf("Trying logout\n");
 	}
-	ret = try_ctlogout(ctx, conn, cmd, verbose);
+	ret = try_ctlogout(ctx, request, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
 		return 1;

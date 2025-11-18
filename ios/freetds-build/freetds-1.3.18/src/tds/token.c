@@ -50,13 +50,13 @@
 #include <freetds/replacements.h>
 
 /** \cond HIDDEN_SYMBOLS */
-#define USE_ICONV (tds->conn->use_iconv)
+#define USE_ICONV (tds->request->use_iconv)
 
 #define TDS_GET_COLUMN_TYPE(col) do { \
 	TDS_TINYINT _tds_type = tds_get_byte(tds); \
 	if (!is_tds_type_valid(_tds_type)) \
 		return TDS_FAIL; \
-	tds_set_column_type(tds->conn, col, (TDS_SERVER_TYPE) _tds_type); \
+	tds_set_column_type(tds->request, col, (TDS_SERVER_TYPE) _tds_type); \
 } while(0)
 
 #define TDS_GET_COLUMN_INFO(tds, col) \
@@ -167,7 +167,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS_CAPABILITY_TOKEN:
 		tok_size = tds_get_usmallint(tds);
-		cap = tds->conn->capabilities.types;
+		cap = tds->request->capabilities.types;
 		memset(cap, 0, 2*sizeof(*cap));
 		cap[0].type = 1;
 		cap[0].len = sizeof(cap[0].values);
@@ -194,7 +194,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 			 * Sybase 11.0 servers return the wrong length in the capability packet,
 			 * causing us to read past the done packet.
 			 */
-			if (tds->conn->product_version < TDS_SYB_VER(12, 0, 0) && type == 2)
+			if (tds->request->product_version < TDS_SYB_VER(12, 0, 0) && type == 2)
 				break;
 		}
 		break;
@@ -241,7 +241,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		return tds_process_cursor_tokens(tds);
 		break;
 	case TDS_CONTROL_FEATUREEXTACK_TOKEN:
-		if (IS_TDS74_PLUS(tds->conn))
+		if (IS_TDS74_PLUS(tds->request))
 			return tds_process_featureextack(tds);
 		/* fall through */
 	case TDS5_DYNAMIC_TOKEN:
@@ -254,7 +254,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tok_size = tds_get_byte(tds);
 		if (tok_size >= 3) {
 			tds_get_byte(tds);
-			tds5_negotiate_set_msg_type(tds->conn->authentication, tds_get_usmallint(tds));
+			tds5_negotiate_set_msg_type(tds->request->authentication, tds_get_usmallint(tds));
 			tok_size -= 3;
 		}
 		tds_get_n(tds, NULL, tok_size);
@@ -295,7 +295,7 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 		  const char *name;
 		} ver;
 
-	tds->conn->tds71rev1 = 0;
+	tds->request->tds71rev1 = 0;
 	len = tds_get_usmallint(tds);
 	if (len < 10)
 		return TDS_FAIL;
@@ -308,37 +308,37 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	ver.reported = (ver.major << 24) | (ver.minor << 16) | (ver.tiny[0] << 8) | ver.tiny[1];
 
 	if (ver.reported == 0x07010000)
-		tds->conn->tds71rev1 = 1;
+		tds->request->tds71rev1 = 1;
 
 	/* Log reported server product name, cf. MS-TDS LOGINACK documentation. */
 	switch (ver.reported) {
 	case 0x07000000:
 		ver.name = "7.0";
-		tds->conn->tds_version = 0x700;
+		tds->request->tds_version = 0x700;
 		break;
 	case 0x07010000:
 		ver.name = "2000";
-		tds->conn->tds_version = 0x701;
+		tds->request->tds_version = 0x701;
 		break;
 	case 0x71000001:
 		ver.name = "2000 SP1";
-		tds->conn->tds_version = 0x701;
+		tds->request->tds_version = 0x701;
 		break;
 	case 0x72090002:
 		ver.name = "2005";
-		tds->conn->tds_version = 0x702;
+		tds->request->tds_version = 0x702;
 		break;
 	case 0x730A0003:
 		ver.name = "2008 (no NBCROW or fSparseColumnSet)";
-		tds->conn->tds_version = 0x703;
+		tds->request->tds_version = 0x703;
 		break;
 	case 0x730B0003:
 		ver.name = "2008";
-		tds->conn->tds_version = 0x703;
+		tds->request->tds_version = 0x703;
 		break;
 	case 0x74000004:
 		ver.name = "2012-2017";
-		tds->conn->tds_version = 0x704;
+		tds->request->tds_version = 0x704;
 		break;
 	default:
 		ver.name = "unknown";
@@ -355,15 +355,15 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	product_version = 0;
 	/* Compute product name length from packet length. */
 	len -= 10;
-	free(tds->conn->product_name);
+	free(tds->request->product_name);
 	if (ver.major >= 7u) {
 		product_version = 0x80u;
-		memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len / 2);
+		memrc += tds_alloc_get_string(tds, &tds->request->product_name, len / 2);
 	} else if (ver.major >= 5) {
-		memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len);
+		memrc += tds_alloc_get_string(tds, &tds->request->product_name, len);
 	} else {
-		memrc += tds_alloc_get_string(tds, &tds->conn->product_name, len);
-		if (tds->conn->product_name != NULL && strstr(tds->conn->product_name, "Microsoft") != NULL)
+		memrc += tds_alloc_get_string(tds, &tds->request->product_name, len);
+		if (tds->request->product_name != NULL && strstr(tds->request->product_name, "Microsoft") != NULL)
 			product_version = 0x80u;
 	}
 	if (memrc != 0)
@@ -380,7 +380,7 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	 */
 	if (ver.major == 4 && ver.minor == 2 && (product_version & 0xff0000ffu) == 0x5f0000ffu)
 		product_version = ((product_version & 0xffff00u) | 0x800000u) << 8;
-	tds->conn->product_version = product_version;
+	tds->request->product_version = product_version;
 	tdsdump_log(TDS_DBG_FUNC, "Product version %lX\n", (unsigned long) product_version);
 
 	/*
@@ -388,12 +388,12 @@ tds_process_loginack(TDSSOCKET *tds, TDSRET *login_succeeded)
 	 * TDS 4.2 reports 1 on success and is not
 	 * present on failure
 	 */
-	if (ack == 5 || ack == 1 || (IS_TDS50(tds->conn) && ack == 0x85)) {
+	if (ack == 5 || ack == 1 || (IS_TDS50(tds->request) && ack == 0x85)) {
 		*login_succeeded = TDS_SUCCESS;
 		/* authentication is now useless */
-		if (tds->conn->authentication) {
-			tds->conn->authentication->free(tds->conn, tds->conn->authentication);
-			tds->conn->authentication = NULL;
+		if (tds->request->authentication) {
+			tds->request->authentication->free(tds->request, tds->request->authentication);
+			tds->request->authentication = NULL;
 		}
 	}
 
@@ -429,8 +429,8 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			TDS_PROPAGATE(tds_process_default_tokens(tds, marker));
 			break;
 		}
-		if (marker == TDS_DONE_TOKEN && IS_TDS50(tds->conn) && tds->conn->authentication) {
-			TDSAUTHENTICATION *auth = tds->conn->authentication;
+		if (marker == TDS_DONE_TOKEN && IS_TDS50(tds->request) && tds->request->authentication) {
+			TDSAUTHENTICATION *auth = tds->request->authentication;
 			if (TDS_SUCCEED(auth->handle_next(tds, auth, 0))) {
 				marker = 0;
 				continue;
@@ -440,7 +440,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 
 	/* set the spid */
 	if (TDS_IS_MSSQL(tds))
-		tds->conn->spid = TDS_GET_A2BE(tds->in_buf+4);
+		tds->request->spid = TDS_GET_A2BE(tds->in_buf+4);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens() returning %s\n", 
 					(succeed == TDS_SUCCESS)? "TDS_SUCCESS" : "TDS_FAIL");
@@ -461,17 +461,17 @@ tds_process_auth(TDSSOCKET * tds)
 	CHECK_TDS_EXTRA(tds);
 
 #if ENABLE_EXTRA_CHECKS
-	if (!IS_TDS7_PLUS(tds->conn))
+	if (!IS_TDS7_PLUS(tds->request))
 		tdsdump_log(TDS_DBG_ERROR, "Called auth on TDS version < 7\n");
 #endif
 
 	pdu_size = tds_get_usmallint(tds);
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN PDU size %u\n", pdu_size);
 
-	if (!tds->conn->authentication)
+	if (!tds->request->authentication)
 		return TDS_FAIL;
 
-	return tds->conn->authentication->handle_next(tds, tds->conn->authentication, pdu_size);
+	return tds->request->authentication->handle_next(tds, tds->request->authentication, pdu_size);
 }
 
 /**
@@ -640,7 +640,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 						tds->cur_dyn->num_id = *(TDS_INT *) curcol->column_data;
 					}
 					if (tds->current_op == TDS_OP_UNPREPARE)
-						tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
+						tds_dynamic_deallocated(tds->request, tds->cur_dyn);
 				}
 				tds_free_param_results(pinfo);
 			} else {
@@ -754,7 +754,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			switch (tds->current_op) {
 			case TDS_OP_DYN_DEALLOC:
 				if (done_flags && (*done_flags & TDS_DONE_ERROR) == 0)
-					tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
+					tds_dynamic_deallocated(tds->request, tds->cur_dyn);
 				break;
 			default:
 				break;
@@ -779,7 +779,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 					cursor->srv_status &= ~TDS_CUR_ISTAT_OPEN;
 					cursor->srv_status |= TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_DECLARED;
 					if (cursor->status.dealloc == TDS_CURSOR_STATE_SENT) {
-						tds_cursor_deallocated(tds->conn, cursor);
+						tds_cursor_deallocated(tds->request, cursor);
 					}
 				}
 				*result_type = TDS_NO_MORE_RESULTS;
@@ -787,7 +787,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				break;
 			case TDS_OP_UNPREPARE:
 				if (done_flags && (*done_flags & TDS_DONE_ERROR) == 0)
-					tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
+					tds_dynamic_deallocated(tds->request, tds->cur_dyn);
 				*result_type = TDS_NO_MORE_RESULTS;
 				rc = TDS_NO_MORE_RESULTS;
 				break;
@@ -984,7 +984,7 @@ tds_read_namelist(TDSSOCKET * tds, int remainder, struct namelist **p_head, int 
 		}
 
 		remainder -= namelen;
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(tds->request))
 			remainder -= namelen;
 		num_names++;
 	}
@@ -1198,10 +1198,10 @@ tds_process_tabname(TDSSOCKET *tds)
 	/* different structure for tds7.1 */
 	/* hdrsize check is required for tds7.1 revision 1 (mssql without SPs) */
 	/* TODO change tds_version ?? */
-	if (IS_TDS71_PLUS(tds->conn) && (!IS_TDS71(tds->conn) || !tds->conn->tds71rev1))
+	if (IS_TDS71_PLUS(tds->request) && (!IS_TDS71(tds->request) || !tds->request->tds71rev1))
 		num_names = tds71_read_table_names(tds, hdrsize, &head);
 	else
-		num_names = tds_read_namelist(tds, hdrsize, &head, IS_TDS7_PLUS(tds->conn));
+		num_names = tds_read_namelist(tds, hdrsize, &head, IS_TDS7_PLUS(tds->request));
 	if (num_names <= 0)
 		return TDS_FAIL;
 
@@ -1275,10 +1275,10 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 			l = tds_get_byte(tds);
 			if (curcol) {
 				tds_dstr_get(tds, &curcol->table_column_name, l);
-				if (IS_TDS7_PLUS(tds->conn))
+				if (IS_TDS7_PLUS(tds->request))
 					l *= 2;
 			} else {
-				if (IS_TDS7_PLUS(tds->conn))
+				if (IS_TDS7_PLUS(tds->request))
 					l *= 2;
 				/* discard silently */
 				tds_get_n(tds, NULL, l);
@@ -1482,7 +1482,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 		adjust_character_column_size(tds, curcol);
 
 		/* skip locale */
-		if (!IS_TDS42(tds->conn))
+		if (!IS_TDS42(tds->request))
 			tds_get_n(tds, NULL, tds_get_byte(tds));
 	}
 
@@ -1517,7 +1517,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_COLUMN_EXTRA(curcol);
 
 	/*  User defined data type of the column */
-	curcol->column_usertype = IS_TDS72_PLUS(tds->conn) ? tds_get_int(tds) : tds_get_smallint(tds);
+	curcol->column_usertype = IS_TDS72_PLUS(tds->request) ? tds_get_int(tds) : tds_get_smallint(tds);
 
 	curcol->column_flags = tds_get_smallint(tds);	/*  Flags */
 
@@ -1655,7 +1655,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
 	if (!is_param) {
 		/* TODO check if all flags are the same for all TDS versions */
-		if (IS_TDS50(tds->conn))
+		if (IS_TDS50(tds->request))
 			curcol->column_hidden = curcol->column_flags & 0x1;
 		curcol->column_key = (curcol->column_flags & 0x2) > 1;
 		curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
@@ -1684,7 +1684,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 			, might_be_nullable	= 0x0800 
 		};
 		/* TODO: implement members in TDSCOLUMN */
-		if (IS_TDS72_PLUS(tds->conn)) {
+		if (IS_TDS72_PLUS(tds->request)) {
 			curcol->is_computed = 		(curcol->column_flags & (1 << 4)) > 1;
 			curcol->us_reserved_odbc1 = 	(curcol->column_flags & (1 << 5)) > 1;
 			curcol->us_reserved_odbc2 = 	(curcol->column_flags & (1 << 6)) > 1;
@@ -1693,7 +1693,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 #endif 
 	} 
 
-	if (IS_TDS72_PLUS(tds->conn)) {
+	if (IS_TDS72_PLUS(tds->request)) {
 		tds_get_n(tds, NULL, 2);
 #if 0
 		/* TODO: implement members in TDSCOLUMN, values untested */
@@ -2022,10 +2022,10 @@ tds_process_pending_closes(TDSSOCKET *tds)
 	int all_closed = 1;
 
 	/* avoid recursions */
-	tds->conn->pending_close = 0;
+	tds->request->pending_close = 0;
 
 	/* scan all cursors to close */
-	cursor = tds->conn->cursors;
+	cursor = tds->request->cursors;
 	if (cursor)
 		++cursor->ref_count;
 	for (; cursor; cursor = next_cursor) {
@@ -2047,7 +2047,7 @@ tds_process_pending_closes(TDSSOCKET *tds)
 	}
 
 	/* scan all dynamic to close */
-	dyn = tds->conn->dyns;
+	dyn = tds->request->dyns;
 	if (dyn)
 		++dyn->ref_count;
 	for (; dyn; dyn = next_dyn) {
@@ -2067,7 +2067,7 @@ tds_process_pending_closes(TDSSOCKET *tds)
 	}
 
 	if (!all_closed)
-		tds->conn->pending_close = 1;
+		tds->request->pending_close = 1;
 }
 
 /**
@@ -2115,7 +2115,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	if (flags_parm)
 		*flags_parm = tmp;
 
-	rows_affected = IS_TDS72_PLUS(tds->conn) ? tds_get_int8(tds) : tds_get_int(tds);
+	rows_affected = IS_TDS72_PLUS(tds->request) ? tds_get_int8(tds) : tds_get_int(tds);
 	tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %" PRId64 "\n", rows_affected);
 
 	if (was_cancelled || (!more_results && !tds->in_cancel)) {
@@ -2128,7 +2128,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 			tds->bulk_query = false;
 		} else {
 			tds_set_state(tds, TDS_IDLE);
-			if (tds->conn->pending_close)
+			if (tds->request->pending_close)
 				tds_process_pending_closes(tds);
 		}
 	}
@@ -2228,16 +2228,16 @@ tds_process_env_chg(TDSSOCKET * tds)
 		/* save new collation */
 		size = tds_get_byte(tds);
 		tdsdump_log(TDS_DBG_ERROR, "tds_process_env_chg(): %d bytes of collation data received\n", size);
-		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->conn->collation was", tds->conn->collation, 5);
-		memset(tds->conn->collation, 0, 5);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->request->collation was", tds->request->collation, 5);
+		memset(tds->request->collation, 0, 5);
 		if (size < 5) {
-			tds_get_n(tds, tds->conn->collation, size);
+			tds_get_n(tds, tds->request->collation, size);
 		} else {
-			tds_get_n(tds, tds->conn->collation, 5);
+			tds_get_n(tds, tds->request->collation, 5);
 			tds_get_n(tds, NULL, size - 5);
-			tds7_srv_charset_changed(tds->conn, tds->conn->collation);
+			tds7_srv_charset_changed(tds->request, tds->request->collation);
 		}
-		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->conn->collation now", tds->conn->collation, 5);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->request->collation now", tds->request->collation, 5);
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;
@@ -2246,24 +2246,24 @@ tds_process_env_chg(TDSSOCKET * tds)
 	if (type == TDS_ENV_BEGINTRANS) {
 		/* TODO check size */
 		size = tds_get_byte(tds);
-		tds_get_n(tds, tds->conn->tds72_transaction, 8);
+		tds_get_n(tds, tds->request->tds72_transaction, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;
 	}
 
 	if (type == TDS_ENV_COMMITTRANS || type == TDS_ENV_ROLLBACKTRANS) {
-		memset(tds->conn->tds72_transaction, 0, 8);
+		memset(tds->request->tds72_transaction, 0, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;
 	}
 
-	if (IS_TDS71_PLUS(tds->conn) && type == TDS_ENV_ROUTING)
+	if (IS_TDS71_PLUS(tds->request) && type == TDS_ENV_ROUTING)
 		return tds_process_env_routing(tds);
 
 	/* discard byte values, not still supported */
 	/* TODO support them */
-	if (IS_TDS71_PLUS(tds->conn) && type > TDS_ENV_PACKSIZE) {
+	if (IS_TDS71_PLUS(tds->request) && type > TDS_ENV_PACKSIZE) {
 		/* discard rest of the packet */
 		tds_get_n(tds, NULL, size - 1);
 		return TDS_SUCCESS;
@@ -2296,15 +2296,15 @@ tds_process_env_chg(TDSSOCKET * tds)
 		}
 		break;
 	case TDS_ENV_DATABASE:
-		dest = &tds->conn->env.database;
+		dest = &tds->request->env.database;
 		break;
 	case TDS_ENV_LANG:
-		dest = &tds->conn->env.language;
+		dest = &tds->request->env.language;
 		break;
 	case TDS_ENV_CHARSET:
 		tdsdump_log(TDS_DBG_FUNC, "server indicated charset change to \"%s\"\n", newval);
-		dest = &tds->conn->env.charset;
-		tds_srv_charset_changed(tds->conn, newval);
+		dest = &tds->request->env.charset;
+		tds_srv_charset_changed(tds->request, newval);
 		break;
 	}
 	if (tds->env_chg_func) {
@@ -2427,13 +2427,13 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	/* stored proc name if available */
 	GET_STRING(&msg.proc_name, byte);
 
-	readed_len += char_len * (IS_TDS7_PLUS(tds->conn) ? 2 : 1);
+	readed_len += char_len * (IS_TDS7_PLUS(tds->request) ? 2 : 1);
 
 	/* line number in the sql statement where the problem occured */
 	/* login still not done, we don't know exactly the version */
-	if (tds->conn->product_version == 0 ?
-	    IS_TDS7_PLUS(tds->conn) && readed_len + 4 <= packet_len :
-	    IS_TDS72_PLUS(tds->conn)) {
+	if (tds->request->product_version == 0 ?
+	    IS_TDS7_PLUS(tds->request) && readed_len + 4 <= packet_len :
+	    IS_TDS72_PLUS(tds->request)) {
 		msg.line_number = tds_get_int(tds);
 		readed_len += 4;
 	} else {
@@ -2487,7 +2487,7 @@ tds_process_info(TDSSOCKET * tds, int marker)
 	if (marker == TDS_EED_TOKEN && tds->cur_dyn && !TDS_IS_MSSQL(tds) && msg.msgno == 2782) {
 		/* we must emulate prepare */
 		tds->cur_dyn->emulated = 1;
-		tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
+		tds_dynamic_deallocated(tds->request, tds->cur_dyn);
 	} else if (marker == TDS_INFO_TOKEN && msg.msgno == 16954 && TDS_IS_MSSQL(tds)
 		   && tds->current_op == TDS_OP_CURSOROPEN && tds->cur_cursor) {
 		/* here mssql say "Executing SQL directly; no cursor." opening cursor */
@@ -2505,8 +2505,8 @@ tds_process_info(TDSSOCKET * tds, int marker)
 		}
 	}
 
-	if (!tds->conn->server) {
-		tds->conn->server = msg.server;
+	if (!tds->request->server) {
+		tds->request->server = msg.server;
 		msg.server = NULL;
 	}
 	tds_free_msg(&msg);
@@ -2580,17 +2580,17 @@ tds_process_cancel(TDSSOCKET * tds)
 /**
  * Finds a dynamic given string id
  * \return dynamic or NULL is not found
- * \param conn state information for the socket and the TDS protocol
+ * \param request state information for the socket and the TDS protocol
  * \param id   dynamic id to search
  */
 TDSDYNAMIC *
-tds_lookup_dynamic(TDSCONNECTION * conn, const char *id)
+tds_lookup_dynamic(TDSCONNECTION * request, const char *id)
 {
 	TDSDYNAMIC *curr;
 
-	CHECK_CONN_EXTRA(conn);
+	CHECK_CONN_EXTRA(request);
 	
-	for (curr = conn->dyns; curr != NULL; curr = curr->next) {
+	for (curr = request->dyns; curr != NULL; curr = curr->next) {
 		if (!strcmp(curr->id, id))
 			return curr;
 	}
@@ -2632,7 +2632,7 @@ tds_process_dynamic(TDSSOCKET * tds)
 	if (drain) {
 		tds_get_n(tds, NULL, drain);
 	}
-	return tds_lookup_dynamic(tds->conn, id);
+	return tds_lookup_dynamic(tds->request, id);
 }
 
 /**
@@ -2958,7 +2958,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 		cursor->cursor_id = cursor_id;
 		cursor->srv_status = cursor_status;
 		if ((cursor_status & TDS_CUR_ISTAT_DEALLOC) != 0)
-			tds_cursor_deallocated(tds->conn, cursor);
+			tds_cursor_deallocated(tds->request, cursor);
 	} 
 	return TDS_SUCCESS;
 }
@@ -2980,7 +2980,7 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds5_process_optioncmd()\n");
 
-	if (!IS_TDS50(tds->conn))
+	if (!IS_TDS50(tds->request))
 		return TDS_FAIL;
 
 	tds_get_usmallint(tds);	/* length */
@@ -3231,13 +3231,13 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (is_ascii_type(curcol->on_server.column_type)) {
 		/* don't override setting from column collation */
 		if (!curcol->char_conv)
-			curcol->char_conv = tds->conn->char_convs[client2server_chardata];
+			curcol->char_conv = tds->request->char_convs[client2server_chardata];
 		goto compute;
 	}
 
-	if (IS_TDS7_PLUS(tds->conn)) {
+	if (IS_TDS7_PLUS(tds->request)) {
 		if (is_unicode_type(curcol->on_server.column_type))
-			curcol->char_conv = tds->conn->char_convs[client2ucs2];
+			curcol->char_conv = tds->request->char_convs[client2ucs2];
 		goto compute;
 	}
 
@@ -3246,20 +3246,20 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		(curcol->on_server.column_type == SYBLONGBINARY && (
 		 curcol->column_usertype == USER_UNICHAR_TYPE ||
 		 curcol->column_usertype == USER_UNIVARCHAR_TYPE))) {
-		const int canonic_client = tds->conn->char_convs[client2ucs2]->from.charset.canonic;
+		const int canonic_client = tds->request->char_convs[client2ucs2]->from.charset.canonic;
 		const int sybase_utf16 = TDS_CHARSET_UTF_16LE;
 
-		if (tds_capability_has_res(tds->conn, TDS_RES_IMAGE_NONCHAR)) {
-			curcol->char_conv = tds_iconv_get_info(tds->conn, canonic_client, TDS_CHARSET_UTF_8);
+		if (tds_capability_has_res(tds->request, TDS_RES_IMAGE_NONCHAR)) {
+			curcol->char_conv = tds_iconv_get_info(tds->request, canonic_client, TDS_CHARSET_UTF_8);
 			goto compute;
 		}
 
-		curcol->char_conv = tds_iconv_get_info(tds->conn, canonic_client, sybase_utf16);
+		curcol->char_conv = tds_iconv_get_info(tds->request, canonic_client, sybase_utf16);
 
 		/* fallback to UCS-2LE */
 		/* FIXME should be useless. Does not works always */
 		if (!curcol->char_conv)
-			curcol->char_conv = tds->conn->char_convs[client2ucs2];
+			curcol->char_conv = tds->request->char_convs[client2ucs2];
 	}
 
 compute:

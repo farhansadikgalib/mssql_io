@@ -100,7 +100,7 @@
 #define TDSPOLLURG 0x8000u
 
 #if ENABLE_ODBC_MARS
-static void tds_check_cancel(TDSCONNECTION *conn);
+static void tds_check_cancel(TDSCONNECTION *request);
 #endif
 
 
@@ -370,7 +370,7 @@ typedef struct {
 TDSERRNO
 tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
 {
-	TDSCONNECTION *conn = tds->conn;
+	TDSCONNECTION *request = tds->request;
 	int len, i;
 	TDSERRNO tds_error;
 	struct addrinfo *curr_addr;
@@ -389,7 +389,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 		return TDSECONN;
 
 	tdsdump_log(TDS_DBG_INFO1, "Connecting with protocol version %d.%d\n",
-		    TDS_MAJOR(conn), TDS_MINOR(conn));
+		    TDS_MAJOR(request), TDS_MINOR(request));
 
 	for (len = 0, curr_addr = addr; curr_addr != NULL; curr_addr = curr_addr->ai_next)
 		++len;
@@ -449,7 +449,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 				case TDSEOK:
 					/* connected! */
 					/* free other sockets and continue with this one */
-					conn->s = sock;
+					request->s = sock;
 					tds_error = TDSEOK;
 					goto exit;
 				case TDSEINPROGRESS:
@@ -513,7 +513,7 @@ tds_open_socket(TDSSOCKET *tds, struct addrinfo *addr, unsigned int port, int ti
 				continue;
 			}
 			if (fds[i].revents & POLLOUT) {
-				conn->s = fds[i].fd;
+				request->s = fds[i].fd;
 				fds[i].fd = INVALID_SOCKET;
 				tds_error = TDSEOK;
 				goto exit;
@@ -549,18 +549,18 @@ tds_close_socket(TDSSOCKET * tds)
 {
 	if (!IS_TDSDEAD(tds)) {
 #if ENABLE_ODBC_MARS
-		TDSCONNECTION *conn = tds->conn;
+		TDSCONNECTION *request = tds->request;
 		unsigned n = 0, count = 0;
-		tds_mutex_lock(&conn->list_mtx);
-		for (; n < conn->num_sessions; ++n)
-			if (TDSSOCKET_VALID(conn->sessions[n]))
+		tds_mutex_lock(&request->list_mtx);
+		for (; n < request->num_sessions; ++n)
+			if (TDSSOCKET_VALID(request->sessions[n]))
 				++count;
 		if (count > 1)
 			tds_append_fin(tds);
-		tds_mutex_unlock(&conn->list_mtx);
+		tds_mutex_unlock(&request->list_mtx);
 		if (count <= 1) {
 			tds_disconnect(tds);
-			tds_connection_close(conn);
+			tds_connection_close(request);
 		} else {
 			tds_set_state(tds, TDS_DEAD);
 		}
@@ -575,26 +575,26 @@ tds_close_socket(TDSSOCKET * tds)
 }
 
 void
-tds_connection_close(TDSCONNECTION *conn)
+tds_connection_close(TDSCONNECTION *request)
 {
 #if ENABLE_ODBC_MARS
 	unsigned n = 0;
 #endif
 
-	if (!TDS_IS_SOCKET_INVALID(conn->s)) {
+	if (!TDS_IS_SOCKET_INVALID(request->s)) {
 		/* TODO check error ?? how to return it ?? */
-		CLOSESOCKET(conn->s);
-		conn->s = INVALID_SOCKET;
+		CLOSESOCKET(request->s);
+		request->s = INVALID_SOCKET;
 	}
 
 #if ENABLE_ODBC_MARS
-	tds_mutex_lock(&conn->list_mtx);
-	for (; n < conn->num_sessions; ++n)
-		if (TDSSOCKET_VALID(conn->sessions[n]))
-			tds_set_state(conn->sessions[n], TDS_DEAD);
-	tds_mutex_unlock(&conn->list_mtx);
+	tds_mutex_lock(&request->list_mtx);
+	for (; n < request->num_sessions; ++n)
+		if (TDSSOCKET_VALID(request->sessions[n]))
+			tds_set_state(request->sessions[n], TDS_DEAD);
+	tds_mutex_unlock(&request->list_mtx);
 #else
-	tds_set_state((TDSSOCKET* ) conn, TDS_DEAD);
+	tds_set_state((TDSSOCKET* ) request, TDS_DEAD);
 #endif
 }
 
@@ -638,13 +638,13 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		if (TDS_IS_SOCKET_INVALID(tds_get_s(tds)))
 			return -1;
 
-		if ((tds_sel & TDSSELREAD) != 0 && tds->conn->tls_session && tds_ssl_pending(tds->conn))
+		if ((tds_sel & TDSSELREAD) != 0 && tds->request->tls_session && tds_ssl_pending(tds->request))
 			return POLLIN;
 
 		fds[0].fd = tds_get_s(tds);
 		fds[0].events = tds_sel;
 		fds[0].revents = 0;
-		fds[1].fd = tds_wakeup_get_fd(&tds->conn->wakeup);
+		fds[1].fd = tds_wakeup_get_fd(&tds->request->wakeup);
 		fds[1].events = POLLIN;
 		fds[1].revents = 0;
 		rc = poll(fds, 2, timeout);
@@ -657,7 +657,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			rc = fds[0].revents;
 			if (fds[1].revents) {
 #if ENABLE_ODBC_MARS
-				tds_check_cancel(tds->conn);
+				tds_check_cancel(tds->request);
 #endif
 				rc |= TDSPOLLURG;
 			}
@@ -722,7 +722,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
  * @returns 0 if blocking, <0 error >0 bytes read
  */
 static int
-tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int buflen)
+tds_socket_read(TDSCONNECTION * request, TDSSOCKET *tds, unsigned char *buf, int buflen)
 {
 	int len, err;
 
@@ -738,7 +738,7 @@ tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int bu
 #endif
 
 	/* read directly from socket*/
-	len = READSOCKET(conn->s, buf, buflen);
+	len = READSOCKET(request->s, buf, buflen);
 	if (len > 0)
 		return len;
 
@@ -747,8 +747,8 @@ tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int bu
 		return 0;
 
 	/* detect connection close */
-	tds_connection_close(conn);
-	tdserror(conn->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
+	tds_connection_close(request);
+	tdserror(request->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
 	return -1;
 }
 
@@ -757,7 +757,7 @@ tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int bu
  * @returns 0 if blocking, <0 error >0 bytes readed
  */
 static int
-tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, int buflen)
+tds_socket_write(TDSCONNECTION *request, TDSSOCKET *tds, const unsigned char *buf, int buflen)
 {
 	int err, len;
 	char *errstr;
@@ -774,9 +774,9 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 #endif
 
 #if defined(SO_NOSIGPIPE)
-	len = send(conn->s, buf, buflen, 0);
+	len = send(request->s, buf, buflen, 0);
 #else
-	len = WRITESOCKET(conn->s, buf, buflen);
+	len = WRITESOCKET(request->s, buf, buflen);
 #endif
 	if (len > 0)
 		return len;
@@ -791,8 +791,8 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 	errstr = sock_strerror(err);
 	tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, errstr);
 	sock_strerror_free(errstr);
-	tds_connection_close(conn);
-	tdserror(conn->tds_ctx, tds, TDSEWRIT, err);
+	tds_connection_close(request);
+	tdserror(request->tds_ctx, tds, TDSEWRIT, err);
 	return -1;
 }
 
@@ -851,17 +851,17 @@ tds_wakeup_send(TDSPOLLWAKEUP *wakeup, char cancel)
 }
 
 static int
-tds_connection_signaled(TDSCONNECTION *conn)
+tds_connection_signaled(TDSCONNECTION *request)
 {
 	int len;
 	char to_cancel[16];
 
 #if defined(__linux__) && HAVE_EVENTFD
-	if (conn->wakeup.s_signal == -1)
-		return read(conn->wakeup.s_signaled, to_cancel, 8) > 0;
+	if (request->wakeup.s_signal == -1)
+		return read(request->wakeup.s_signaled, to_cancel, 8) > 0;
 #endif
 
-	len = READSOCKET(conn->wakeup.s_signaled, to_cancel, sizeof(to_cancel));
+	len = READSOCKET(request->wakeup.s_signaled, to_cancel, sizeof(to_cancel));
 	do {
 		/* no cancel found */
 		if (len <= 0)
@@ -872,31 +872,31 @@ tds_connection_signaled(TDSCONNECTION *conn)
 
 #if ENABLE_ODBC_MARS
 static void
-tds_check_cancel(TDSCONNECTION *conn)
+tds_check_cancel(TDSCONNECTION *request)
 {
 	TDSSOCKET *tds;
 	int rc;
 
-	if (!tds_connection_signaled(conn))
+	if (!tds_connection_signaled(request))
 		return;
 
 	do {
 		unsigned n = 0;
 
 		rc = TDS_SUCCESS;
-		tds_mutex_lock(&conn->list_mtx);
+		tds_mutex_lock(&request->list_mtx);
 		/* Here we scan all list searching for sessions that should send cancel packets */
-		for (; n < conn->num_sessions; ++n)
-			if (TDSSOCKET_VALID(tds=conn->sessions[n]) && tds->in_cancel == 1) {
+		for (; n < request->num_sessions; ++n)
+			if (TDSSOCKET_VALID(tds=request->sessions[n]) && tds->in_cancel == 1) {
 				/* send cancel */
 				tds->in_cancel = 2;
-				tds_mutex_unlock(&conn->list_mtx);
+				tds_mutex_unlock(&request->list_mtx);
 				rc = tds_append_cancel(tds);
-				tds_mutex_lock(&conn->list_mtx);
+				tds_mutex_lock(&request->list_mtx);
 				if (rc != TDS_SUCCESS)
 					break;
 			}
-		tds_mutex_unlock(&conn->list_mtx);
+		tds_mutex_unlock(&request->list_mtx);
 		/* for all failed */
 		/* this must be done outside loop cause it can alter list */
 		/* this must be done unlocked cause it can lock again */
@@ -923,7 +923,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		len = tds_select(tds, TDSSELREAD, tds->query_timeout);
 #if !ENABLE_ODBC_MARS
 		if (len > 0 && (len & TDSPOLLURG)) {
-			tds_connection_signaled(tds->conn);
+			tds_connection_signaled(tds->request);
 			/* send cancel */
 			if (tds->in_cancel == 1)
 				tds_put_cancel(tds);
@@ -931,7 +931,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		}
 #endif
 		if (len > 0) {
-			len = tds_socket_read(tds->conn, tds, buf, buflen);
+			len = tds_socket_read(tds->request, tds, buf, buflen);
 			if (len == 0)
 				continue;
 			return len;
@@ -942,7 +942,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK */
 				continue;
 			err = sock_errno;
-			tds_connection_close(tds->conn);
+			tds_connection_close(tds->request);
 			tdserror(tds_get_ctx(tds), tds, TDSEREAD, err);
 			return -1;
 		}
@@ -962,13 +962,13 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 int
 tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
-	TDSCONNECTION *conn = tds->conn;
+	TDSCONNECTION *request = tds->request;
 
-	if (conn->tls_session)
-		return tds_ssl_read(conn, buf, buflen);
+	if (request->tls_session)
+		return tds_ssl_read(request, buf, buflen);
 
 #if ENABLE_ODBC_MARS
-	return tds_socket_read(conn, tds, buf, buflen);
+	return tds_socket_read(request, tds, buf, buflen);
 #else
 	return tds_goodread(tds, buf, buflen);
 #endif
@@ -994,7 +994,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen)
 		len = tds_select(tds, TDSSELWRITE, tds->query_timeout);
 
 		if (len > 0) {
-			len = tds_socket_write(tds->conn, tds, buffer + sent, buflen - sent);
+			len = tds_socket_write(tds->request, tds, buffer + sent, buflen - sent);
 			if (len == 0)
 				continue;
 			if (len < 0)
@@ -1014,7 +1014,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen)
 			errstr = sock_strerror(err);
 			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", err, errstr);
 			sock_strerror_free(errstr);
-			tds_connection_close(tds->conn);
+			tds_connection_close(tds->request);
 			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			return -1;
 		}
@@ -1050,7 +1050,7 @@ int
 tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int final)
 {
 	int sent;
-	TDSCONNECTION *conn = tds->conn;
+	TDSCONNECTION *request = tds->request;
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && !defined(SO_NOSIGPIPE)
 	void (*oldsig) (int);
@@ -1061,11 +1061,11 @@ tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int f
 	}
 #endif
 
-	if (conn->tls_session)
-		sent = tds_ssl_write(conn, buf, buflen);
+	if (request->tls_session)
+		sent = tds_ssl_write(request, buf, buflen);
 	else
 #if ENABLE_ODBC_MARS
-		sent = tds_socket_write(conn, tds, buf, buflen);
+		sent = tds_socket_write(request, tds, buf, buflen);
 #else
 		sent = tds_goodwrite(tds, buf, buflen);
 #endif

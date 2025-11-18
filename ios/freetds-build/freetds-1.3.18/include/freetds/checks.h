@@ -37,7 +37,7 @@
 #define CHECK_CURSOR_EXTRA(cursor)        CHECK_STRUCT_EXTRA(tds_check_cursor_extra,cursor)
 #define CHECK_DYNAMIC_EXTRA(dynamic)      CHECK_STRUCT_EXTRA(tds_check_dynamic_extra,dynamic)
 #define CHECK_FREEZE_EXTRA(freeze)        CHECK_STRUCT_EXTRA(tds_check_freeze_extra,freeze)
-#define CHECK_CONN_EXTRA(conn)
+#define CHECK_CONN_EXTRA(request)
 
 #if ENABLE_EXTRA_CHECKS
 void tds_check_tds_extra(const TDSSOCKET * tds);
