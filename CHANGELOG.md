@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.2] - 2025-11-19
 
+### Added
+- Web platform support via backend API proxy
+- MssqlIoWeb class for web applications
+- HTTP-based query execution for web
+- Security-conscious web implementation (requires backend API)
+
 ### Changed
 - Cleaned and simplified README documentation
 - Removed all emojis for cleaner presentation
 - Shortened documentation from 577 to 196 lines
+- Variable naming in examples (conn → request)
 
 ### Removed
 - Non-functional CI workflow

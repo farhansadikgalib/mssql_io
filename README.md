@@ -1,6 +1,6 @@
 # MSSQL IO
 
-A Flutter plugin for connecting to Microsoft SQL Server. Supports Android, iOS, Windows, macOS, and Linux.
+A Flutter plugin for connecting to Microsoft SQL Server. Supports Android, iOS, Windows, macOS, Linux, and Web.
 
 ## Features
 
@@ -24,8 +24,6 @@ flutter pub get
 ## Setup
 
 ### Mobile (Android & iOS)
-
-Run the automated build script:
 
 ```bash
 # Android
@@ -53,6 +51,25 @@ sudo apt-get install freetds-dev
 ```bash
 vcpkg install freetds:x64-windows
 ```
+
+### Web
+
+Web applications require a backend API server to proxy SQL Server connections (for security).
+
+```dart
+// Configure web API endpoint
+MssqlIoWeb.getInstance().configure(
+  apiBaseUrl: 'https://your-api.com/sql',
+  authToken: 'your-auth-token',
+);
+
+// Execute queries via API
+final result = await MssqlIoWeb.getInstance().executeQuery(
+  'SELECT * FROM Users',
+);
+```
+
+**Note:** Never expose database credentials in web applications. Always use a secure backend API.
 
 ## Usage
 

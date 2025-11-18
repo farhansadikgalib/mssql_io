@@ -58,6 +58,9 @@ library;
 // Core connection
 export 'src/mssql_connection.dart';
 
+// Web platform
+export 'mssql_io_web.dart' if (dart.library.io) 'src/mssql_connection.dart';
+
 // Models
 export 'src/models/connection_config.dart';
 export 'src/models/query_result.dart';

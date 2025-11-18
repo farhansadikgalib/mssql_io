@@ -1,5 +1,5 @@
 import 'dart:ffi' as ffi;
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:ffi/ffi.dart';
 
 /// FFI bindings for the native MSSQL library
@@ -15,6 +15,15 @@ class MssqlFfiBindings {
   /// Load the native library based on platform
   ffi.DynamicLibrary _loadLibrary() {
     const String libName = 'mssql_io';
+    
+    // Check if we're on web (FFI not supported)
+    if (identical(0, 0.0)) {
+      // This is a compile-time check for web
+      throw UnsupportedError(
+        'FFI is not supported on web platform. '
+        'Use MssqlIoWeb.configure() instead for web applications.',
+      );
+    }
     
     if (Platform.isAndroid) {
       return ffi.DynamicLibrary.open('lib$libName.so');
