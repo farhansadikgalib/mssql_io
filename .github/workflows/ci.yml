@@ -1,0 +1,272 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  analyze:
+    name: Analyze and Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+      
+      - name: Analyze project source
+        run: dart analyze --fatal-infos
+      
+  test-dart:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Run unit tests
+        run: flutter test --coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: mssql-io-coverage
+  
+  build-linux:
+    name: Build Native Library (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install FreeTDS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y freetds-dev freetds-bin
+      
+      - name: Install CMake
+        run: |
+          sudo apt-get install -y cmake build-essential
+      
+      - name: Build native library
+        run: |
+          cd src
+          mkdir -p build
+          cd build
+          cmake ..
+          make
+          ls -la
+      
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: libmssql_io-linux
+          path: src/build/libmssql_io.so
+
+  build-macos:
+    name: Build Native Library (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install FreeTDS
+        run: |
+          brew install freetds
+      
+      - name: Build native library
+        run: |
+          cd src
+          mkdir -p build
+          cd build
+          cmake ..
+          make
+          ls -la
+      
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: libmssql_io-macos
+          path: src/build/libmssql_io.dylib
+
+  build-windows:
+    name: Build Native Library (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+      
+      - name: Install vcpkg
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+      
+      - name: Install FreeTDS via vcpkg
+        run: |
+          .\vcpkg\vcpkg install freetds:x64-windows
+      
+      - name: Build native library
+        run: |
+          cd src
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_TOOLCHAIN_FILE=../../vcpkg/scripts/buildsystems/vcpkg.cmake
+          cmake --build . --config Release
+      
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mssql_io-windows
+          path: src/build/Release/mssql_io.dll
+
+  build-android:
+    name: Build Android Library
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Install NDK
+        run: |
+          echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.9519653"
+      
+      - name: Build Android
+        run: |
+          cd example
+          flutter pub get
+          flutter build apk --debug
+      
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-libs
+          path: example/build/app/intermediates/merged_native_libs/**/*.so
+
+  build-ios:
+    name: Build iOS Library
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+      
+      - name: Build iOS
+        run: |
+          cd example
+          flutter pub get
+          flutter build ios --no-codesign --debug
+      
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-framework
+          path: example/build/ios/**/*.framework
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [build-linux]
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: IntegrationTest123!
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P IntegrationTest123! -Q 'SELECT 1'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Download Linux library
+        uses: actions/download-artifact@v3
+        with:
+          name: libmssql_io-linux
+          path: /usr/local/lib/
+      
+      - name: Create test database
+        run: |
+          docker exec ${{ job.services.sqlserver.id }} \
+            /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P IntegrationTest123! \
+            -Q "CREATE DATABASE TestDatabase"
+      
+      - name: Install dependencies
+        run: |
+          cd example
+          flutter pub get
+      
+      - name: Run integration tests
+        env:
+          MSSQL_HOST: localhost
+          MSSQL_PORT: 1433
+          MSSQL_DATABASE: TestDatabase
+          MSSQL_USERNAME: sa
+          MSSQL_PASSWORD: IntegrationTest123!
+        run: |
+          cd example
+          flutter test integration_test/
+
+  publish-dry-run:
+    name: Publish Dry Run
+    runs-on: ubuntu-latest
+    needs: [analyze, test-dart, build-linux, build-macos, build-windows, build-android, build-ios]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Dry run publish
+        run: dart pub publish --dry-run
+
