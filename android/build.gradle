@@ -1,0 +1,79 @@
+group 'com.mssql.mssql_io'
+version '0.0.1'
+
+buildscript {
+    ext.kotlin_version = '1.9.0'
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 34
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 34
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared",
+                          "-DFREETDS_INCLUDE_DIR=${project.projectDir}/src/main/cpp/freetds/include",
+                          "-DFREETDS_LIBRARY_DIR=${project.projectDir}/src/main/jniLibs/\${ANDROID_ABI}"
+                cppFlags "-std=c++11"
+            }
+        }
+
+        ndk {
+            // Specify ABIs to build for
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "../src/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java']
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+
+    namespace 'com.mssql.mssql_io'
+}
+
+dependencies {
+    implementation 'androidx.annotation:annotation:1.7.0'
+}
+

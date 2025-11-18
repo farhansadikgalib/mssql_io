@@ -1,0 +1,44 @@
+# Don't publish native build artifacts
+src/build/
+*.so
+*.dylib
+*.dll
+*.lib
+
+# Don't publish FreeTDS build directories
+android/freetds-build/
+ios/freetds-build/
+ios/Frameworks/
+android/src/main/jniLibs/
+
+# Don't publish IDE configs
+.vscode/
+.idea/
+*.iml
+
+# Don't publish CI configs
+.github/
+
+# Don't publish test artifacts
+coverage/
+.test_coverage.dart
+
+# Don't publish example builds
+example/build/
+example/.dart_tool/
+example/.flutter-plugins
+example/.flutter-plugins-dependencies
+example/ios/
+example/android/
+
+# Don't publish documentation builds
+doc/api/
+
+# Don't publish local configs
+.DS_Store
+Thumbs.db
+
+# Don't publish build scripts (users need to build themselves)
+build_mobile.sh
+build_native.sh
+

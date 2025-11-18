@@ -1,0 +1,2 @@
+poll.lo: poll.c ../../include/config.h
+../../include/config.h:

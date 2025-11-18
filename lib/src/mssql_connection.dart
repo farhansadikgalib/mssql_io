@@ -1,0 +1,568 @@
+import 'dart:convert';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+
+import 'models/connection_config.dart';
+import 'models/query_result.dart';
+import 'models/sql_parameter.dart';
+import 'exceptions/mssql_exceptions.dart';
+import 'ffi/mssql_ffi_bindings.dart';
+
+/// Main entry point for SQL Server operations
+/// 
+/// This is a singleton class - use `MssqlConnection.getInstance()` to access it.
+class MssqlConnection {
+  static MssqlConnection? _instance;
+  final MssqlFfiBindings _bindings;
+  
+  int? _connectionHandle;
+  ConnectionConfig? _config;
+  bool _isConnected = false;
+  bool _isInTransaction = false;
+  int _reconnectAttempts = 0;
+
+  MssqlConnection._internal(this._bindings);
+
+  /// Get singleton instance
+  static MssqlConnection getInstance() {
+    _instance ??= MssqlConnection._internal(MssqlFfiBindings());
+    return _instance!;
+  }
+
+  /// For testing - inject custom bindings
+  @visibleForTesting
+  static MssqlConnection getInstanceWithBindings(MssqlFfiBindings bindings) {
+    _instance = MssqlConnection._internal(bindings);
+    return _instance!;
+  }
+
+  /// Check if currently connected
+  bool get isConnected => _isConnected;
+
+  /// Check if in an active transaction
+  bool get isInTransaction => _isInTransaction;
+
+  /// Get current connection configuration (credentials are not exposed)
+  ConnectionConfig? get config => _config;
+
+  /// Connect to SQL Server
+  /// 
+  /// Returns `true` on success, throws [ConnectionException] on failure.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final conn = MssqlConnection.getInstance();
+  /// final success = await conn.connect(
+  ///   host: '192.168.1.100',
+  ///   port: 1433,
+  ///   databaseName: 'MyDatabase',
+  ///   username: 'sa',
+  ///   password: 'MyPassword123',
+  ///   timeoutInSeconds: 15,
+  /// );
+  /// ```
+  Future<bool> connect({
+    required String host,
+    int port = 1433,
+    required String databaseName,
+    required String username,
+    required String password,
+    int timeoutInSeconds = 15,
+    bool enableTls = true,
+    bool autoReconnect = false,
+    int maxReconnectAttempts = 3,
+    int reconnectDelaySeconds = 2,
+  }) async {
+    if (_isConnected) {
+      await disconnect();
+    }
+
+    _config = ConnectionConfig(
+      host: host,
+      port: port,
+      databaseName: databaseName,
+      username: username,
+      password: password,
+      timeoutInSeconds: timeoutInSeconds,
+      enableTls: enableTls,
+      autoReconnect: autoReconnect,
+      maxReconnectAttempts: maxReconnectAttempts,
+      reconnectDelaySeconds: reconnectDelaySeconds,
+    );
+
+    return _attemptConnection();
+  }
+
+  /// Internal connection attempt
+  Future<bool> _attemptConnection() async {
+    if (_config == null) {
+      throw ConnectionException('Connection config is not set');
+    }
+
+    try {
+      final handle = _bindings.connect(
+        host: _config!.host,
+        port: _config!.port,
+        database: _config!.databaseName,
+        username: _config!.username,
+        password: _config!.password,
+        timeout: _config!.timeoutInSeconds,
+      );
+
+      if (handle <= 0) {
+        final error = _getLastError(handle);
+        throw ConnectionException(
+          'Failed to connect to SQL Server',
+          details: error,
+          errorCode: handle,
+        );
+      }
+
+      _connectionHandle = handle;
+      _isConnected = true;
+      _reconnectAttempts = 0;
+      return true;
+    } catch (e) {
+      if (e is ConnectionException) rethrow;
+      throw ConnectionException(
+        'Connection failed',
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Disconnect from SQL Server
+  /// 
+  /// Closes the connection and frees native resources.
+  Future<void> disconnect() async {
+    if (_connectionHandle != null) {
+      try {
+        if (_isInTransaction) {
+          await rollback();
+        }
+        _bindings.disconnect(_connectionHandle!);
+      } catch (e) {
+        debugPrint('Warning: Error during disconnect: $e');
+      } finally {
+        _connectionHandle = null;
+        _isConnected = false;
+        _isInTransaction = false;
+      }
+    }
+  }
+
+  /// Execute a SELECT query and return results
+  /// 
+  /// Example:
+  /// ```dart
+  /// final result = await conn.getData('SELECT * FROM Users WHERE Age > 18');
+  /// for (final row in result.rows) {
+  ///   print('Name: ${row['Name']}, Age: ${row['Age']}');
+  /// }
+  /// ```
+  Future<QueryResult> getData(String query) async {
+    _ensureConnected();
+    
+    try {
+      final resultPtr = _bindings.executeQuery(_connectionHandle!, query);
+      final jsonString = _bindings.getStringAndFree(resultPtr);
+      
+      if (jsonString.isEmpty) {
+        throw QueryException(
+          'Empty result from query execution',
+          query: query,
+        );
+      }
+
+      return QueryResult.fromJson(jsonString);
+    } catch (e) {
+      await _handleConnectionError(e);
+      if (e is QueryException) rethrow;
+      throw QueryException(
+        'Query execution failed',
+        query: query,
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Execute a parameterized SELECT query
+  /// 
+  /// Prevents SQL injection by using sp_executesql internally.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final result = await conn.getDataWithParams(
+  ///   'SELECT * FROM Users WHERE Age > @minAge AND City = @city',
+  ///   [
+  ///     SqlParameter(name: 'minAge', value: 18),
+  ///     SqlParameter(name: 'city', value: 'New York'),
+  ///   ],
+  /// );
+  /// ```
+  Future<QueryResult> getDataWithParams(
+    String query,
+    List<SqlParameter> params,
+  ) async {
+    _ensureConnected();
+    
+    final paramsJson = _encodeParameters(params);
+    
+    try {
+      final resultPtr = _bindings.executeQueryWithParams(
+        _connectionHandle!,
+        query,
+        paramsJson,
+      );
+      final jsonString = _bindings.getStringAndFree(resultPtr);
+      
+      if (jsonString.isEmpty) {
+        throw QueryException(
+          'Empty result from parameterized query',
+          query: query,
+        );
+      }
+
+      return QueryResult.fromJson(jsonString);
+    } catch (e) {
+      await _handleConnectionError(e);
+      if (e is QueryException) rethrow;
+      throw QueryException(
+        'Parameterized query execution failed',
+        query: query,
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Execute a write operation (INSERT/UPDATE/DELETE)
+  /// 
+  /// Returns the number of affected rows.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final affected = await conn.writeData(
+  ///   "INSERT INTO Users (Name, Age) VALUES ('John', 25)"
+  /// );
+  /// print('Inserted $affected rows');
+  /// ```
+  Future<int> writeData(String query) async {
+    _ensureConnected();
+    
+    try {
+      final affected = _bindings.executeWrite(_connectionHandle!, query);
+      
+      if (affected < 0) {
+        final error = _getLastError(_connectionHandle!);
+        throw QueryException(
+          'Write operation failed',
+          query: query,
+          details: error,
+          errorCode: affected,
+        );
+      }
+
+      return affected;
+    } catch (e) {
+      await _handleConnectionError(e);
+      if (e is QueryException) rethrow;
+      throw QueryException(
+        'Write operation failed',
+        query: query,
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Execute a parameterized write operation
+  /// 
+  /// Prevents SQL injection for INSERT/UPDATE/DELETE operations.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final affected = await conn.writeDataWithParams(
+  ///   'UPDATE Users SET Age = @age WHERE Name = @name',
+  ///   [
+  ///     SqlParameter(name: 'age', value: 26),
+  ///     SqlParameter(name: 'name', value: 'John'),
+  ///   ],
+  /// );
+  /// ```
+  Future<int> writeDataWithParams(
+    String query,
+    List<SqlParameter> params,
+  ) async {
+    _ensureConnected();
+    
+    final paramsJson = _encodeParameters(params);
+    
+    try {
+      final affected = _bindings.executeWriteWithParams(
+        _connectionHandle!,
+        query,
+        paramsJson,
+      );
+      
+      if (affected < 0) {
+        final error = _getLastError(_connectionHandle!);
+        throw QueryException(
+          'Parameterized write operation failed',
+          query: query,
+          details: error,
+          errorCode: affected,
+        );
+      }
+
+      return affected;
+    } catch (e) {
+      await _handleConnectionError(e);
+      if (e is QueryException) rethrow;
+      throw QueryException(
+        'Parameterized write operation failed',
+        query: query,
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Begin a transaction
+  /// 
+  /// All subsequent operations will be part of this transaction until
+  /// commit() or rollback() is called.
+  /// 
+  /// Example:
+  /// ```dart
+  /// await conn.beginTransaction();
+  /// try {
+  ///   await conn.writeData('INSERT INTO Users (Name) VALUES ("Alice")');
+  ///   await conn.writeData('INSERT INTO Orders (UserId) VALUES (1)');
+  ///   await conn.commit();
+  /// } catch (e) {
+  ///   await conn.rollback();
+  /// }
+  /// ```
+  Future<void> beginTransaction() async {
+    _ensureConnected();
+    
+    if (_isInTransaction) {
+      throw TransactionException('Transaction already in progress');
+    }
+
+    try {
+      final result = _bindings.beginTransaction(_connectionHandle!);
+      
+      if (result < 0) {
+        final error = _getLastError(_connectionHandle!);
+        throw TransactionException(
+          'Failed to begin transaction',
+          details: error,
+          errorCode: result,
+        );
+      }
+
+      _isInTransaction = true;
+    } catch (e) {
+      if (e is TransactionException) rethrow;
+      throw TransactionException(
+        'Failed to begin transaction',
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Commit the current transaction
+  /// 
+  /// Makes all changes permanent since beginTransaction() was called.
+  Future<void> commit() async {
+    _ensureConnected();
+    
+    if (!_isInTransaction) {
+      throw TransactionException('No transaction in progress');
+    }
+
+    try {
+      final result = _bindings.commitTransaction(_connectionHandle!);
+      
+      if (result < 0) {
+        final error = _getLastError(_connectionHandle!);
+        throw TransactionException(
+          'Failed to commit transaction',
+          details: error,
+          errorCode: result,
+        );
+      }
+
+      _isInTransaction = false;
+    } catch (e) {
+      if (e is TransactionException) rethrow;
+      throw TransactionException(
+        'Failed to commit transaction',
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Rollback the current transaction
+  /// 
+  /// Reverts all changes since beginTransaction() was called.
+  Future<void> rollback() async {
+    _ensureConnected();
+    
+    if (!_isInTransaction) {
+      throw TransactionException('No transaction in progress');
+    }
+
+    try {
+      final result = _bindings.rollbackTransaction(_connectionHandle!);
+      
+      if (result < 0) {
+        final error = _getLastError(_connectionHandle!);
+        throw TransactionException(
+          'Failed to rollback transaction',
+          details: error,
+          errorCode: result,
+        );
+      }
+
+      _isInTransaction = false;
+    } catch (e) {
+      if (e is TransactionException) rethrow;
+      throw TransactionException(
+        'Failed to rollback transaction',
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Bulk insert rows into a table
+  /// 
+  /// Uses FreeTDS BCP or batched prepared statements for efficient inserts.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final rows = [
+  ///   {'Name': 'Alice', 'Age': 25},
+  ///   {'Name': 'Bob', 'Age': 30},
+  ///   {'Name': 'Charlie', 'Age': 35},
+  /// ];
+  /// final inserted = await conn.bulkInsert('Users', rows, batchSize: 1000);
+  /// print('Inserted $inserted rows');
+  /// ```
+  Future<int> bulkInsert(
+    String tableName,
+    List<Map<String, dynamic>> rows, {
+    int batchSize = 1000,
+  }) async {
+    _ensureConnected();
+    
+    if (rows.isEmpty) {
+      return 0;
+    }
+
+    final dataJson = jsonEncode(rows);
+    
+    try {
+      final inserted = _bindings.bulkInsert(
+        _connectionHandle!,
+        tableName,
+        dataJson,
+        batchSize,
+      );
+      
+      if (inserted < 0) {
+        final error = _getLastError(_connectionHandle!);
+        throw QueryException(
+          'Bulk insert failed',
+          details: error,
+          errorCode: inserted,
+        );
+      }
+
+      return inserted;
+    } catch (e) {
+      await _handleConnectionError(e);
+      if (e is QueryException) rethrow;
+      throw QueryException(
+        'Bulk insert failed',
+        details: e.toString(),
+      );
+    }
+  }
+
+  /// Ensure connection is active
+  void _ensureConnected() {
+    if (!_isConnected || _connectionHandle == null) {
+      throw ConnectionException('Not connected to SQL Server');
+    }
+  }
+
+  /// Get last error message from native layer
+  String _getLastError(int handle) {
+    try {
+      final errorPtr = _bindings.getLastError(handle);
+      return _bindings.getStringAndFree(errorPtr);
+    } catch (e) {
+      return 'Unknown error';
+    }
+  }
+
+  /// Handle connection errors and attempt reconnection if configured
+  Future<void> _handleConnectionError(dynamic error) async {
+    if (_config?.autoReconnect != true) {
+      return;
+    }
+
+    // Check if error indicates connection loss
+    final errorStr = error.toString().toLowerCase();
+    if (errorStr.contains('connection') ||
+        errorStr.contains('disconnect') ||
+        errorStr.contains('timeout')) {
+      
+      _isConnected = false;
+      
+      if (_reconnectAttempts < _config!.maxReconnectAttempts) {
+        _reconnectAttempts++;
+        debugPrint(
+          'Connection lost. Attempting reconnection '
+          '($_reconnectAttempts/${_config!.maxReconnectAttempts})...',
+        );
+        
+        await Future.delayed(
+          Duration(seconds: _config!.reconnectDelaySeconds),
+        );
+        
+        try {
+          await _attemptConnection();
+          debugPrint('Reconnection successful');
+        } catch (e) {
+          debugPrint('Reconnection failed: $e');
+        }
+      }
+    }
+  }
+
+  /// Encode parameters to JSON format for native layer
+  String _encodeParameters(List<SqlParameter> params) {
+    final List<Map<String, dynamic>> paramList = params.map((param) {
+      return {
+        'name': param.name.startsWith('@') ? param.name : '@${param.name}',
+        'value': param.value,
+        'type': param.type?.sqlTypeName ?? _inferType(param.value),
+      };
+    }).toList();
+
+    return jsonEncode(paramList);
+  }
+
+  /// Infer SQL type from Dart value
+  String _inferType(dynamic value) {
+    if (value == null) return 'NULL';
+    if (value is int) return 'INT';
+    if (value is double) return 'FLOAT';
+    if (value is bool) return 'BIT';
+    if (value is String) return 'NVARCHAR';
+    if (value is DateTime) return 'DATETIME2';
+    return 'NVARCHAR';
+  }
+}
+

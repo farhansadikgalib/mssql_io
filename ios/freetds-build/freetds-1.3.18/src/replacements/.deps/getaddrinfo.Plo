@@ -1,0 +1,2 @@
+getaddrinfo.lo: getaddrinfo.c ../../include/config.h
+../../include/config.h:

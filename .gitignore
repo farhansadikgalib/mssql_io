@@ -1,0 +1,136 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Native build artifacts
+/src/build/
+/android/.cxx/
+/android/build/
+/ios/build/
+/macos/build/
+/linux/build/
+/windows/build/
+
+# Native libraries
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.framework
+
+# FreeTDS config (local development)
+freetds.conf
+
+# Test coverage
+/coverage/
+
+# Credentials and sensitive data
+.env
+credentials.json
+secrets.yaml
+
+# Logs
+*.log
+logs/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.suo
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace/
+
+# Gradle
+.gradle/
+local.properties
+*.jar
+*.war
+*.ear
+
+# Node (for potential tooling)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# IDE
+.vscode/
+*.code-workspace
+
+# OS
+Thumbs.db
