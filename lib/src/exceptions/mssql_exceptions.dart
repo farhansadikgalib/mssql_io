@@ -21,8 +21,7 @@ class MssqlException implements Exception {
 
 /// Exception thrown when connection fails
 class ConnectionException extends MssqlException {
-  const ConnectionException(String message, {String? details, int? errorCode})
-      : super(message, details: details, errorCode: errorCode);
+  const ConnectionException(super.message, {super.details, super.errorCode});
 
   @override
   String toString() => 'ConnectionException: $message${details != null ? "\nDetails: $details" : ""}';
@@ -30,8 +29,7 @@ class ConnectionException extends MssqlException {
 
 /// Exception thrown when authentication fails
 class AuthenticationException extends MssqlException {
-  const AuthenticationException(String message, {String? details, int? errorCode})
-      : super(message, details: details, errorCode: errorCode);
+  const AuthenticationException(super.message, {super.details, super.errorCode});
 
   @override
   String toString() => 'AuthenticationException: $message';
@@ -41,8 +39,7 @@ class AuthenticationException extends MssqlException {
 class QueryException extends MssqlException {
   final String? query;
 
-  const QueryException(String message, {this.query, String? details, int? errorCode})
-      : super(message, details: details, errorCode: errorCode);
+  const QueryException(super.message, {this.query, super.details, super.errorCode});
 
   @override
   String toString() {
@@ -59,8 +56,7 @@ class QueryException extends MssqlException {
 
 /// Exception thrown when transaction operation fails
 class TransactionException extends MssqlException {
-  const TransactionException(String message, {String? details, int? errorCode})
-      : super(message, details: details, errorCode: errorCode);
+  const TransactionException(super.message, {super.details, super.errorCode});
 
   @override
   String toString() => 'TransactionException: $message${details != null ? "\nDetails: $details" : ""}';
@@ -70,8 +66,7 @@ class TransactionException extends MssqlException {
 class TimeoutException extends MssqlException {
   final int timeoutSeconds;
 
-  const TimeoutException(String message, this.timeoutSeconds, {String? details})
-      : super(message, details: details);
+  const TimeoutException(super.message, this.timeoutSeconds, {super.details});
 
   @override
   String toString() =>
@@ -80,8 +75,7 @@ class TimeoutException extends MssqlException {
 
 /// Exception thrown when native library cannot be loaded
 class NativeLibraryException extends MssqlException {
-  const NativeLibraryException(String message, {String? details})
-      : super(message, details: details);
+  const NativeLibraryException(super.message, {super.details});
 
   @override
   String toString() => 'NativeLibraryException: $message${details != null ? "\nDetails: $details" : ""}';
