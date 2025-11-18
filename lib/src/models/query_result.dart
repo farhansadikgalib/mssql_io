@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 /// Result from a SQL query execution
-/// 
+///
 /// JSON schema: { columns: [string], rows: [object|array], affected: number }
 class QueryResult {
   /// Column names in the result set
@@ -23,7 +23,7 @@ class QueryResult {
   factory QueryResult.fromJson(String jsonString) {
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
-      
+
       final List<String> columns = (json['columns'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
@@ -83,4 +83,3 @@ class QueryResult {
     return 'QueryResult(columns: $columns, rowCount: $rowCount, affected: $affectedRows)';
   }
 }
-

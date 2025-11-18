@@ -24,12 +24,14 @@ class ConnectionException extends MssqlException {
   const ConnectionException(super.message, {super.details, super.errorCode});
 
   @override
-  String toString() => 'ConnectionException: $message${details != null ? "\nDetails: $details" : ""}';
+  String toString() =>
+      'ConnectionException: $message${details != null ? "\nDetails: $details" : ""}';
 }
 
 /// Exception thrown when authentication fails
 class AuthenticationException extends MssqlException {
-  const AuthenticationException(super.message, {super.details, super.errorCode});
+  const AuthenticationException(super.message,
+      {super.details, super.errorCode});
 
   @override
   String toString() => 'AuthenticationException: $message';
@@ -39,7 +41,8 @@ class AuthenticationException extends MssqlException {
 class QueryException extends MssqlException {
   final String? query;
 
-  const QueryException(super.message, {this.query, super.details, super.errorCode});
+  const QueryException(super.message,
+      {this.query, super.details, super.errorCode});
 
   @override
   String toString() {
@@ -59,7 +62,8 @@ class TransactionException extends MssqlException {
   const TransactionException(super.message, {super.details, super.errorCode});
 
   @override
-  String toString() => 'TransactionException: $message${details != null ? "\nDetails: $details" : ""}';
+  String toString() =>
+      'TransactionException: $message${details != null ? "\nDetails: $details" : ""}';
 }
 
 /// Exception thrown when timeout occurs
@@ -78,6 +82,6 @@ class NativeLibraryException extends MssqlException {
   const NativeLibraryException(super.message, {super.details});
 
   @override
-  String toString() => 'NativeLibraryException: $message${details != null ? "\nDetails: $details" : ""}';
+  String toString() =>
+      'NativeLibraryException: $message${details != null ? "\nDetails: $details" : ""}';
 }
-

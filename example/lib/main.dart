@@ -34,13 +34,13 @@ class _HomePageState extends State<HomePage> {
   final _databaseController = TextEditingController(text: 'TestDB');
   final _usernameController = TextEditingController(text: 'sa');
   final _passwordController = TextEditingController(text: 'Password123');
-  
+
   final _queryController = TextEditingController(
     text: 'SELECT 1 AS num, \'Hello\' AS message',
   );
-  
+
   final MssqlConnection _conn = MssqlConnection.getInstance();
-  
+
   bool _isConnected = false;
   String _output = 'Not connected';
   bool _isLoading = false;
@@ -117,12 +117,12 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final result = await _conn.getData(_queryController.text);
-      
+
       final buffer = StringBuffer();
       buffer.writeln('Query executed successfully\n');
       buffer.writeln('Columns: ${result.columns.join(", ")}\n');
       buffer.writeln('Rows returned: ${result.rowCount}\n');
-      
+
       if (result.isNotEmpty) {
         buffer.writeln('Results:');
         for (int i = 0; i < result.rows.length; i++) {
@@ -159,21 +159,21 @@ class _HomePageState extends State<HomePage> {
 
     try {
       await _conn.beginTransaction();
-      
+
       // Create a temporary table
       await _conn.writeData('''
         IF OBJECT_ID('TempTest', 'U') IS NOT NULL 
           DROP TABLE TempTest;
         CREATE TABLE TempTest (Id INT, Value NVARCHAR(50));
       ''');
-      
+
       // Insert some data
       await _conn.writeData('INSERT INTO TempTest VALUES (1, \'Test1\')');
       await _conn.writeData('INSERT INTO TempTest VALUES (2, \'Test2\')');
-      
+
       // Query the data
       final result = await _conn.getData('SELECT * FROM TempTest');
-      
+
       // Rollback to clean up
       await _conn.rollback();
 

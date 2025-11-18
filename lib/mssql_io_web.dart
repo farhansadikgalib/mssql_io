@@ -8,7 +8,7 @@ import 'src/models/sql_parameter.dart';
 import 'src/exceptions/mssql_exceptions.dart';
 
 /// Web implementation of MSSQL IO plugin
-/// 
+///
 /// Note: Web platform cannot use FFI, so it requires a backend API server
 /// to proxy SQL Server requests. This is a security-conscious design that
 /// prevents exposing database credentials in web applications.
@@ -19,7 +19,7 @@ class MssqlIoWeb {
 
   /// Singleton instance for web
   static MssqlIoWeb? _instance;
-  
+
   String? _apiBaseUrl;
   String? _authToken;
   bool _isConfigured = false;
@@ -32,10 +32,10 @@ class MssqlIoWeb {
   MssqlIoWeb._internal();
 
   /// Configure the API endpoint for SQL Server proxy
-  /// 
+  ///
   /// Web applications MUST use a backend API server to connect to SQL Server
   /// for security reasons. Never expose database credentials in web code!
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// MssqlIoWeb.getInstance().configure(
@@ -53,7 +53,7 @@ class MssqlIoWeb {
   }
 
   /// Execute a query via the backend API
-  /// 
+  ///
   /// Sends a POST request to your backend API with query details
   Future<QueryResult> executeQuery(
     String query, {
@@ -155,4 +155,3 @@ class MssqlIoWeb {
     }
   }
 }
-

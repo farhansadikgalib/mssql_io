@@ -41,7 +41,7 @@ class MockMssqlFfiBindings extends MssqlFfiBindings {
     if (!connections.containsKey(connectionHandle)) {
       return _allocString('{"columns":[],"rows":[],"affected":0}');
     }
-    
+
     // Mock result
     const mockResult = '''
     {
@@ -64,7 +64,7 @@ class MockMssqlFfiBindings extends MssqlFfiBindings {
   ) {
     lastQuery = query;
     lastParamsJson = paramsJson;
-    
+
     const mockResult = '''
     {
       "columns": ["id", "name"],
@@ -375,4 +375,3 @@ void main() {
     });
   });
 }
-

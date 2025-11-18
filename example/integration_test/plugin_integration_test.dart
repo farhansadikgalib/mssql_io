@@ -3,10 +3,10 @@ import 'package:integration_test/integration_test.dart';
 import 'package:mssql_io/mssql_io.dart';
 
 /// Integration tests for MSSQL IO plugin
-/// 
+///
 /// These tests require a running SQL Server instance.
 /// Set environment variables or modify the connection config below.
-/// 
+///
 /// To run:
 /// flutter test integration_test/plugin_integration_test.dart
 void main() {
@@ -215,11 +215,13 @@ void main() {
         (i) => {'Id': i, 'Name': 'User$i'},
       );
 
-      final inserted = await request.bulkInsert('BulkTest', rows, batchSize: 50);
+      final inserted =
+          await request.bulkInsert('BulkTest', rows, batchSize: 50);
       expect(inserted, greaterThan(0));
 
       // Verify
-      final result = await request.getData('SELECT COUNT(*) AS cnt FROM BulkTest');
+      final result =
+          await request.getData('SELECT COUNT(*) AS cnt FROM BulkTest');
       expect(result.rows[0]['cnt'], greaterThan(0));
 
       // Cleanup

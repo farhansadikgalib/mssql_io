@@ -15,7 +15,7 @@ class MssqlFfiBindings {
   /// Load the native library based on platform
   ffi.DynamicLibrary _loadLibrary() {
     const String libName = 'mssql_io';
-    
+
     // Check if we're on web (FFI not supported)
     if (identical(0, 0.0)) {
       // This is a compile-time check for web
@@ -24,7 +24,7 @@ class MssqlFfiBindings {
         'Use MssqlIoWeb.configure() instead for web applications.',
       );
     }
-    
+
     if (Platform.isAndroid) {
       return ffi.DynamicLibrary.open('lib$libName.so');
     } else if (Platform.isIOS || Platform.isMacOS) {
@@ -34,8 +34,9 @@ class MssqlFfiBindings {
     } else if (Platform.isWindows) {
       return ffi.DynamicLibrary.open('$libName.dll');
     }
-    
-    throw UnsupportedError('Platform ${Platform.operatingSystem} is not supported');
+
+    throw UnsupportedError(
+        'Platform ${Platform.operatingSystem} is not supported');
   }
 
   /// Connect to SQL Server
@@ -238,9 +239,9 @@ class _MssqlNativeFunctions {
         int,
       )>('mssql_connect');
 
-  late final disconnect = _lib.lookupFunction<
-      ffi.Int32 Function(ffi.Int64),
-      int Function(int)>('mssql_disconnect');
+  late final disconnect =
+      _lib.lookupFunction<ffi.Int32 Function(ffi.Int64), int Function(int)>(
+          'mssql_disconnect');
 
   late final executeQuery = _lib.lookupFunction<
       ffi.Pointer<Utf8> Function(ffi.Int64, ffi.Pointer<Utf8>),
@@ -262,23 +263,23 @@ class _MssqlNativeFunctions {
       int Function(int, ffi.Pointer<Utf8>,
           ffi.Pointer<Utf8>)>('mssql_execute_write_with_params');
 
-  late final beginTransaction = _lib.lookupFunction<
-      ffi.Int32 Function(ffi.Int64),
-      int Function(int)>('mssql_begin_transaction');
+  late final beginTransaction =
+      _lib.lookupFunction<ffi.Int32 Function(ffi.Int64), int Function(int)>(
+          'mssql_begin_transaction');
 
-  late final commitTransaction = _lib.lookupFunction<
-      ffi.Int32 Function(ffi.Int64),
-      int Function(int)>('mssql_commit_transaction');
+  late final commitTransaction =
+      _lib.lookupFunction<ffi.Int32 Function(ffi.Int64), int Function(int)>(
+          'mssql_commit_transaction');
 
-  late final rollbackTransaction = _lib.lookupFunction<
-      ffi.Int32 Function(ffi.Int64),
-      int Function(int)>('mssql_rollback_transaction');
+  late final rollbackTransaction =
+      _lib.lookupFunction<ffi.Int32 Function(ffi.Int64), int Function(int)>(
+          'mssql_rollback_transaction');
 
   late final bulkInsert = _lib.lookupFunction<
       ffi.Int32 Function(
           ffi.Int64, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, ffi.Int32),
-      int Function(int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>,
-          int)>('mssql_bulk_insert');
+      int Function(
+          int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, int)>('mssql_bulk_insert');
 
   late final getLastError = _lib.lookupFunction<
       ffi.Pointer<Utf8> Function(ffi.Int64),
@@ -288,4 +289,3 @@ class _MssqlNativeFunctions {
       ffi.Void Function(ffi.Pointer<Utf8>),
       void Function(ffi.Pointer<Utf8>)>('mssql_free_string');
 }
-

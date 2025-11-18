@@ -32,37 +32,37 @@ class SqlParameter {
 enum SqlType {
   /// VARCHAR/NVARCHAR
   string,
-  
+
   /// INT
   integer,
-  
+
   /// BIGINT
   bigInt,
-  
+
   /// FLOAT/REAL
   float,
-  
+
   /// DECIMAL/NUMERIC
   decimal,
-  
+
   /// BIT
   boolean,
-  
+
   /// DATETIME/DATETIME2
   dateTime,
-  
+
   /// DATE
   date,
-  
+
   /// TIME
   time,
-  
+
   /// VARBINARY/BINARY (will be Base64 encoded)
   binary,
-  
+
   /// UNIQUEIDENTIFIER
   guid,
-  
+
   /// NULL
   null_,
 }
@@ -98,4 +98,3 @@ extension SqlTypeExtension on SqlType {
     }
   }
 }
-

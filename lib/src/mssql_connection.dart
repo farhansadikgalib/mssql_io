@@ -9,12 +9,12 @@ import 'exceptions/mssql_exceptions.dart';
 import 'ffi/mssql_ffi_bindings.dart';
 
 /// Main entry point for SQL Server operations
-/// 
+///
 /// This is a singleton class - use `MssqlConnection.getInstance()` to access it.
 class MssqlConnection {
   static MssqlConnection? _instance;
   final MssqlFfiBindings _bindings;
-  
+
   int? _connectionHandle;
   ConnectionConfig? _config;
   bool _isConnected = false;
@@ -46,9 +46,9 @@ class MssqlConnection {
   ConnectionConfig? get config => _config;
 
   /// Connect to SQL Server
-  /// 
+  ///
   /// Returns `true` on success, throws [ConnectionException] on failure.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final request = MssqlConnection.getInstance();
@@ -132,7 +132,7 @@ class MssqlConnection {
   }
 
   /// Disconnect from SQL Server
-  /// 
+  ///
   /// Closes the connection and frees native resources.
   Future<void> disconnect() async {
     if (_connectionHandle != null) {
@@ -152,7 +152,7 @@ class MssqlConnection {
   }
 
   /// Execute a SELECT query and return results
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final result = await request.getData('SELECT * FROM Users WHERE Age > 18');
@@ -162,11 +162,11 @@ class MssqlConnection {
   /// ```
   Future<QueryResult> getData(String query) async {
     _ensureConnected();
-    
+
     try {
       final resultPtr = _bindings.executeQuery(_connectionHandle!, query);
       final jsonString = _bindings.getStringAndFree(resultPtr);
-      
+
       if (jsonString.isEmpty) {
         throw QueryException(
           'Empty result from query execution',
@@ -187,9 +187,9 @@ class MssqlConnection {
   }
 
   /// Execute a parameterized SELECT query
-  /// 
+  ///
   /// Prevents SQL injection by using sp_executesql internally.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final result = await request.getDataWithParams(
@@ -205,9 +205,9 @@ class MssqlConnection {
     List<SqlParameter> params,
   ) async {
     _ensureConnected();
-    
+
     final paramsJson = _encodeParameters(params);
-    
+
     try {
       final resultPtr = _bindings.executeQueryWithParams(
         _connectionHandle!,
@@ -215,7 +215,7 @@ class MssqlConnection {
         paramsJson,
       );
       final jsonString = _bindings.getStringAndFree(resultPtr);
-      
+
       if (jsonString.isEmpty) {
         throw QueryException(
           'Empty result from parameterized query',
@@ -236,9 +236,9 @@ class MssqlConnection {
   }
 
   /// Execute a write operation (INSERT/UPDATE/DELETE)
-  /// 
+  ///
   /// Returns the number of affected rows.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final affected = await request.writeData(
@@ -248,10 +248,10 @@ class MssqlConnection {
   /// ```
   Future<int> writeData(String query) async {
     _ensureConnected();
-    
+
     try {
       final affected = _bindings.executeWrite(_connectionHandle!, query);
-      
+
       if (affected < 0) {
         final error = _getLastError(_connectionHandle!);
         throw QueryException(
@@ -275,9 +275,9 @@ class MssqlConnection {
   }
 
   /// Execute a parameterized write operation
-  /// 
+  ///
   /// Prevents SQL injection for INSERT/UPDATE/DELETE operations.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final affected = await request.writeDataWithParams(
@@ -293,16 +293,16 @@ class MssqlConnection {
     List<SqlParameter> params,
   ) async {
     _ensureConnected();
-    
+
     final paramsJson = _encodeParameters(params);
-    
+
     try {
       final affected = _bindings.executeWriteWithParams(
         _connectionHandle!,
         query,
         paramsJson,
       );
-      
+
       if (affected < 0) {
         final error = _getLastError(_connectionHandle!);
         throw QueryException(
@@ -326,10 +326,10 @@ class MssqlConnection {
   }
 
   /// Begin a transaction
-  /// 
+  ///
   /// All subsequent operations will be part of this transaction until
   /// commit() or rollback() is called.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// await request.beginTransaction();
@@ -343,14 +343,14 @@ class MssqlConnection {
   /// ```
   Future<void> beginTransaction() async {
     _ensureConnected();
-    
+
     if (_isInTransaction) {
       throw TransactionException('Transaction already in progress');
     }
 
     try {
       final result = _bindings.beginTransaction(_connectionHandle!);
-      
+
       if (result < 0) {
         final error = _getLastError(_connectionHandle!);
         throw TransactionException(
@@ -371,18 +371,18 @@ class MssqlConnection {
   }
 
   /// Commit the current transaction
-  /// 
+  ///
   /// Makes all changes permanent since beginTransaction() was called.
   Future<void> commit() async {
     _ensureConnected();
-    
+
     if (!_isInTransaction) {
       throw TransactionException('No transaction in progress');
     }
 
     try {
       final result = _bindings.commitTransaction(_connectionHandle!);
-      
+
       if (result < 0) {
         final error = _getLastError(_connectionHandle!);
         throw TransactionException(
@@ -403,18 +403,18 @@ class MssqlConnection {
   }
 
   /// Rollback the current transaction
-  /// 
+  ///
   /// Reverts all changes since beginTransaction() was called.
   Future<void> rollback() async {
     _ensureConnected();
-    
+
     if (!_isInTransaction) {
       throw TransactionException('No transaction in progress');
     }
 
     try {
       final result = _bindings.rollbackTransaction(_connectionHandle!);
-      
+
       if (result < 0) {
         final error = _getLastError(_connectionHandle!);
         throw TransactionException(
@@ -435,9 +435,9 @@ class MssqlConnection {
   }
 
   /// Bulk insert rows into a table
-  /// 
+  ///
   /// Uses FreeTDS BCP or batched prepared statements for efficient inserts.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final rows = [
@@ -454,13 +454,13 @@ class MssqlConnection {
     int batchSize = 1000,
   }) async {
     _ensureConnected();
-    
+
     if (rows.isEmpty) {
       return 0;
     }
 
     final dataJson = jsonEncode(rows);
-    
+
     try {
       final inserted = _bindings.bulkInsert(
         _connectionHandle!,
@@ -468,7 +468,7 @@ class MssqlConnection {
         dataJson,
         batchSize,
       );
-      
+
       if (inserted < 0) {
         final error = _getLastError(_connectionHandle!);
         throw QueryException(
@@ -517,20 +517,19 @@ class MssqlConnection {
     if (errorStr.contains('connection') ||
         errorStr.contains('disconnect') ||
         errorStr.contains('timeout')) {
-      
       _isConnected = false;
-      
+
       if (_reconnectAttempts < _config!.maxReconnectAttempts) {
         _reconnectAttempts++;
         debugPrint(
           'Connection lost. Attempting reconnection '
           '($_reconnectAttempts/${_config!.maxReconnectAttempts})...',
         );
-        
+
         await Future.delayed(
           Duration(seconds: _config!.reconnectDelaySeconds),
         );
-        
+
         try {
           await _attemptConnection();
           debugPrint('Reconnection successful');
@@ -565,4 +564,3 @@ class MssqlConnection {
     return 'NVARCHAR';
   }
 }
-

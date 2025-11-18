@@ -65,8 +65,7 @@ class ConnectionConfig {
       timeoutInSeconds: timeoutInSeconds ?? this.timeoutInSeconds,
       enableTls: enableTls ?? this.enableTls,
       autoReconnect: autoReconnect ?? this.autoReconnect,
-      maxReconnectAttempts:
-          maxReconnectAttempts ?? this.maxReconnectAttempts,
+      maxReconnectAttempts: maxReconnectAttempts ?? this.maxReconnectAttempts,
       reconnectDelaySeconds:
           reconnectDelaySeconds ?? this.reconnectDelaySeconds,
     );
@@ -79,4 +78,3 @@ class ConnectionConfig {
         'username: $username, timeout: ${timeoutInSeconds}s, tls: $enableTls)';
   }
 }
-

@@ -33,7 +33,7 @@ cd android && ./build_freetds.sh
 cd ios && ./build_freetds.sh
 ```
 
-First build takes 15-20 minutes (builds FreeTDS library). Subsequent builds are fast.
+First build takes 10-15 minutes (builds FreeTDS library). Subsequent builds are fast.
 
 ### Desktop
 
@@ -193,20 +193,7 @@ flutter pub get
 flutter build apk  # or ios
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed troubleshooting.
-
-## Documentation
-
-- [API Documentation](https://pub.dev/documentation/mssql_io/latest/)
-- [Example App](example/)
-- [Report Issues](https://github.com/farhansadikgalib/mssql_io/issues)
-- [Changelog](CHANGELOG.md)
-- [Contributing](CONTRIBUTING.md)
-
 ## Author
 
 Farhan Sadik Galib - [farhansadikgalib.com](https://farhansadikgalib.com/)
 
-## License
-
-MIT License - see [LICENSE](LICENSE) file
