@@ -24,7 +24,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final _conn = MssqlConnection.getInstance();
+  final _request = MssqlConnection.getInstance();
   
   final _hostCtrl = TextEditingController(text: 'localhost');
   final _portCtrl = TextEditingController(text: '1433');
@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _connect() async {
     setState(() => _loading = true);
     try {
-      await _conn.connect(
+      await _request.connect(
         host: _hostCtrl.text,
         port: int.parse(_portCtrl.text),
         databaseName: _dbCtrl.text,
@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _disconnect() async {
-    await _conn.disconnect();
+    await _request.disconnect();
     setState(() {
       _connected = false;
       _output = 'Disconnected';
@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
     
     setState(() => _loading = true);
     try {
-      final result = await _conn.getData(_queryCtrl.text);
+      final result = await _request.getData(_queryCtrl.text);
       setState(() => _output = 'Success!\n'
           'Columns: ${result.columns.join(", ")}\n'
           'Rows: ${result.rowCount}\n\n'
@@ -98,19 +98,19 @@ class _HomePageState extends State<HomePage> {
     
     setState(() => _loading = true);
     try {
-      await _conn.beginTransaction();
-      await _conn.writeData('''
+      await _request.beginTransaction();
+      await _request.writeData('''
         IF OBJECT_ID('TempTest', 'U') IS NOT NULL DROP TABLE TempTest;
         CREATE TABLE TempTest (Id INT, Value NVARCHAR(50));
       ''');
-      await _conn.writeData('INSERT INTO TempTest VALUES (1, \'Test1\'), (2, \'Test2\')');
-      final result = await _conn.getData('SELECT * FROM TempTest');
-      await _conn.rollback();
+      await _request.writeData('INSERT INTO TempTest VALUES (1, \'Test1\'), (2, \'Test2\')');
+      final result = await _request.getData('SELECT * FROM TempTest');
+      await _request.rollback();
       
       setState(() => _output = 'Transaction Success!\n'
           'Inserted ${result.rowCount} rows, then rolled back\n\n${result.rows}');
     } catch (e) {
-      try { await _conn.rollback(); } catch (_) {}
+      try { await _request.rollback(); } catch (_) {}
       setState(() => _output = 'Error: $e');
     } finally {
       setState(() => _loading = false);
@@ -122,7 +122,7 @@ class _HomePageState extends State<HomePage> {
     
     setState(() => _loading = true);
     try {
-      final result = await _conn.getDataWithParams(
+      final result = await _request.getDataWithParams(
         'SELECT @name AS Name, @age AS Age',
         [
           SqlParameter(name: 'name', value: 'John'),
