@@ -1,83 +1,39 @@
 # MSSQL IO
 
-A Flutter plugin for connecting to Microsoft SQL Server. Supports Android, iOS, Windows, macOS, Linux, and Web.
-
-## Features
-
-- Direct FFI access for high performance
-- Parameterized queries to prevent SQL injection
-- Transaction support (BEGIN, COMMIT, ROLLBACK)
-- Bulk insert operations
-- Cross-platform compatibility
+Flutter plugin for Microsoft SQL Server. Works on Android, iOS, Windows, macOS, Linux, and Web.
 
 ## Installation
 
 ```yaml
 dependencies:
-  mssql_io: ^0.0.2
+  mssql_io: ^0.0.3
 ```
 
+## Quick Setup
+
+**Mobile:**
 ```bash
-flutter pub get
+cd android && ./build_freetds.sh  # Android (15-20 min first time)
+cd ios && ./build_freetds.sh      # iOS - macOS only (10-15 min)
 ```
 
-## Setup
-
-### Mobile (Android & iOS)
-
+**Desktop:**
 ```bash
-# Android
-cd android && ./build_freetds.sh
-
-# iOS (requires macOS)
-cd ios && ./build_freetds.sh
+brew install freetds              # macOS
+sudo apt-get install freetds-dev  # Linux
+vcpkg install freetds:x64-windows # Windows
 ```
 
-First build takes 10-15 minutes (builds FreeTDS library). Subsequent builds are fast.
-
-### Desktop
-
-**macOS:**
-```bash
-brew install freetds
-```
-
-**Linux:**
-```bash
-sudo apt-get install freetds-dev
-```
-
-**Windows:**
-```bash
-vcpkg install freetds:x64-windows
-```
-
-### Web
-
-Web applications require a backend API server to proxy SQL Server connections (for security).
-
-```dart
-// Configure web API endpoint
-MssqlIoWeb.getInstance().configure(
-  apiBaseUrl: 'https://your-api.com/sql',
-  authToken: 'your-auth-token',
-);
-
-// Execute queries via API
-final result = await MssqlIoWeb.getInstance().executeQuery(
-  'SELECT * FROM Users',
-);
-```
-
-**Note:** Never expose database credentials in web applications. Always use a secure backend API.
+**Web:** Requires backend API proxy.
 
 ## Usage
 
 ```dart
 import 'package:mssql_io/mssql_io.dart';
 
-// Connect
 final request = MssqlConnection.getInstance();
+
+// Connect
 await request.connect(
   host: '192.168.1.100',
   databaseName: 'MyDB',
@@ -87,91 +43,50 @@ await request.connect(
 
 // Query
 final result = await request.getData('SELECT * FROM Users');
-for (final row in result.rows) {
-  print('User: ${row['Name']}');
-}
 
-// Disconnect
-await request.disconnect();
-```
-
-## Common Examples
-
-### Parameterized Queries (Prevents SQL Injection)
-
-```dart
-final result = await request.getDataWithParams(
+// Parameterized query (prevents SQL injection)
+final users = await request.getDataWithParams(
   'SELECT * FROM Users WHERE Age > @age',
   [SqlParameter(name: 'age', value: 18)],
 );
-```
 
-### Insert/Update/Delete
-
-```dart
-final rows = await request.writeDataWithParams(
+// Insert with parameters
+await request.writeDataWithParams(
   'INSERT INTO Users (Name, Email) VALUES (@name, @email)',
-  [
-    SqlParameter(name: 'name', value: 'Alice'),
-    SqlParameter(name: 'email', value: 'alice@example.com'),
-  ],
+  [SqlParameter(name: 'name', value: 'Alice'),
+   SqlParameter(name: 'email', value: 'alice@example.com')],
 );
-print('Inserted $rows rows');
-```
 
-### Transactions
-
-```dart
+// Transaction
 await request.beginTransaction();
 try {
   await request.writeData('INSERT INTO Orders VALUES (1, 99.99)');
-  await request.writeData('UPDATE Inventory SET Stock = Stock - 1');
   await request.commit();
 } catch (e) {
   await request.rollback();
 }
-```
 
-### Bulk Insert
-
-```dart
-final rows = List.generate(1000, (i) => {'Name': 'User$i', 'Age': 20 + i});
-await request.bulkInsert('Users', rows, batchSize: 500);
+await request.disconnect();
 ```
 
 ## API
 
-**Main Methods:**
-- `connect()` - Connect to SQL Server
-- `getData()` - Execute SELECT query
-- `getDataWithParams()` - Secure parameterized query
-- `writeData()` - Execute INSERT/UPDATE/DELETE
-- `writeDataWithParams()` - Secure parameterized write
-- `beginTransaction()`, `commit()`, `rollback()` - Transactions
-- `bulkInsert()` - Batch insert rows
-- `disconnect()` - Close connection
-
-**Result Object:**
-```dart
-QueryResult {
-  columns: ['Id', 'Name', 'Age'],
-  rows: [{'Id': 1, 'Name': 'Alice', 'Age': 25}],
-  affectedRows: 0
-}
-```
+- `connect()` / `disconnect()` - Connection
+- `getData()` / `getDataWithParams()` - Queries
+- `writeData()` / `writeDataWithParams()` - Insert/Update/Delete
+- `beginTransaction()` / `commit()` / `rollback()` - Transactions
+- `bulkInsert()` - Batch operations
 
 ## Security
 
-**Always use parameterized queries** to prevent SQL injection:
+Always use parameterized queries:
 
 ```dart
-// Good - Safe
-await request.getDataWithParams(
-  'SELECT * FROM Users WHERE Name = @name',
-  [SqlParameter(name: 'name', value: userInput)],
-);
+// Safe
+await request.getDataWithParams('SELECT * FROM Users WHERE Name = @name',
+  [SqlParameter(name: 'name', value: userInput)]);
 
-// Bad - SQL Injection Risk!
+// Unsafe!
 await request.getData("SELECT * FROM Users WHERE Name = '$userInput'");
 ```
 
@@ -179,21 +94,22 @@ await request.getData("SELECT * FROM Users WHERE Name = '$userInput'");
 
 **Can't connect?**
 - Check SQL Server is running on port 1433
-- Verify firewall allows connections
 - Test: `telnet your-server 1433`
 
 **Library not found?**
-- Run `./build_freetds.sh` in android/ or ios/ folder
-- Desktop: Install FreeTDS (`brew install freetds` on macOS)
+- Mobile: Run `./build_freetds.sh` in android/ or ios/
+- Desktop: Install FreeTDS
 
-**Build errors?**
-```bash
-flutter clean
-flutter pub get
-flutter build apk # or ios, macos, windows, linux
-```
+## Links
+
+- [API Documentation](https://pub.dev/documentation/mssql_io/latest/)
+- [Example App](example/)
+- [Issues](https://github.com/farhansadikgalib/mssql_io/issues)
 
 ## Author
 
-Farhan Sadik Galib - [farhansadikgalib.com](https://farhansadikgalib.com/)
+[Farhan Sadik Galib](https://farhansadikgalib.com/)
 
+## License
+
+MIT

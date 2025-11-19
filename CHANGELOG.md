@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.2] - 2025-11-19
+## [0.0.3]
+
+### Changed
+- Consistent variable naming throughout (_conn → _request)
+- Simplified example app code structure
+- Cleaner and more developer-friendly examples
+
+## [0.0.2]
 
 ### Added
 - Web platform support via backend API proxy
@@ -40,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM compatibility not yet implemented (planned for future release)
 - Web platform requires backend API server
 
-## [0.0.1] - 2025-11-18
+## [0.0.1]
 
 ### Added
 - Initial release of MSSQL IO plugin
@@ -123,5 +130,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
-- **0.0.2** (2025-11-19): Documentation cleanup and optimization
-- **0.0.1** (2025-11-19): Initial release with full feature set for all platforms
+- **0.0.3**: Consistent naming and cleaner examples
+- **0.0.2**: Web support and documentation cleanup
+- **0.0.1**: Initial release with full feature set

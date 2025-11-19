@@ -1,5 +1,5 @@
 group 'com.mssql.mssql_io'
-version '0.0.2'
+version '0.0.3'
 
 buildscript {
     ext.kotlin_version = '1.9.0'

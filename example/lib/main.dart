@@ -25,14 +25,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _request = MssqlConnection.getInstance();
-  
+
   final _hostCtrl = TextEditingController(text: 'localhost');
   final _portCtrl = TextEditingController(text: '1433');
   final _dbCtrl = TextEditingController(text: 'TestDB');
   final _userCtrl = TextEditingController(text: 'sa');
   final _passCtrl = TextEditingController(text: 'Password123');
-  final _queryCtrl = TextEditingController(text: 'SELECT 1 AS num, \'Hello\' AS msg');
-  
+  final _queryCtrl =
+      TextEditingController(text: 'SELECT 1 AS num, \'Hello\' AS msg');
+
   bool _connected = false;
   String _output = 'Ready to connect';
   bool _loading = false;
@@ -78,7 +79,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _executeQuery() async {
     if (!_connected) return setState(() => _output = 'Not connected');
-    
+
     setState(() => _loading = true);
     try {
       final result = await _request.getData(_queryCtrl.text);
@@ -95,7 +96,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _testTransaction() async {
     if (!_connected) return setState(() => _output = 'Not connected');
-    
+
     setState(() => _loading = true);
     try {
       await _request.beginTransaction();
@@ -103,14 +104,17 @@ class _HomePageState extends State<HomePage> {
         IF OBJECT_ID('TempTest', 'U') IS NOT NULL DROP TABLE TempTest;
         CREATE TABLE TempTest (Id INT, Value NVARCHAR(50));
       ''');
-      await _request.writeData('INSERT INTO TempTest VALUES (1, \'Test1\'), (2, \'Test2\')');
+      await _request.writeData(
+          'INSERT INTO TempTest VALUES (1, \'Test1\'), (2, \'Test2\')');
       final result = await _request.getData('SELECT * FROM TempTest');
       await _request.rollback();
-      
+
       setState(() => _output = 'Transaction Success!\n'
           'Inserted ${result.rowCount} rows, then rolled back\n\n${result.rows}');
     } catch (e) {
-      try { await _request.rollback(); } catch (_) {}
+      try {
+        await _request.rollback();
+      } catch (_) {}
       setState(() => _output = 'Error: $e');
     } finally {
       setState(() => _loading = false);
@@ -119,7 +123,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _testParams() async {
     if (!_connected) return setState(() => _output = 'Not connected');
-    
+
     setState(() => _loading = true);
     try {
       final result = await _request.getDataWithParams(
@@ -129,7 +133,8 @@ class _HomePageState extends State<HomePage> {
           SqlParameter(name: 'age', value: 25),
         ],
       );
-      setState(() => _output = 'Parameterized Query Success!\n\n${result.rows.first}');
+      setState(() =>
+          _output = 'Parameterized Query Success!\n\n${result.rows.first}');
     } catch (e) {
       setState(() => _output = 'Error: $e');
     } finally {
@@ -137,7 +142,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildField(String label, TextEditingController ctrl, {bool obscure = false}) {
+  Widget _buildField(String label, TextEditingController ctrl,
+      {bool obscure = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
@@ -146,7 +152,8 @@ class _HomePageState extends State<HomePage> {
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       ),
     );
@@ -163,7 +170,8 @@ class _HomePageState extends State<HomePage> {
             child: Center(
               child: Text(
                 _connected ? 'Connected' : 'Disconnected',
-                style: TextStyle(color: _connected ? Colors.green : Colors.grey),
+                style:
+                    TextStyle(color: _connected ? Colors.green : Colors.grey),
               ),
             ),
           ),
@@ -181,7 +189,6 @@ class _HomePageState extends State<HomePage> {
                   _buildField('Database', _dbCtrl),
                   _buildField('Username', _userCtrl),
                   _buildField('Password', _passCtrl, obscure: true),
-                  
                   Row(
                     children: [
                       Expanded(
@@ -194,17 +201,16 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: !_connected ? null : _disconnect,
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
                           child: const Text('Disconnect'),
                         ),
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 24),
                   const Divider(),
                   const SizedBox(height: 16),
-                  
                   TextField(
                     controller: _queryCtrl,
                     maxLines: 2,
@@ -213,16 +219,12 @@ class _HomePageState extends State<HomePage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  
                   const SizedBox(height: 12),
-                  
                   ElevatedButton(
                     onPressed: !_connected ? null : _executeQuery,
                     child: const Text('Execute Query'),
                   ),
-                  
                   const SizedBox(height: 8),
-                  
                   Wrap(
                     spacing: 8,
                     children: [
@@ -236,23 +238,23 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 24),
                   const Divider(),
                   const SizedBox(height: 16),
-                  
-                  const Text('Output:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Output:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    constraints: const BoxConstraints(minHeight: 100, maxHeight: 400),
+                    constraints:
+                        const BoxConstraints(minHeight: 100, maxHeight: 400),
                     child: SingleChildScrollView(
-                      child: Text(_output, style: const TextStyle(fontSize: 12)),
+                      child:
+                          Text(_output, style: const TextStyle(fontSize: 12)),
                     ),
                   ),
                 ],
