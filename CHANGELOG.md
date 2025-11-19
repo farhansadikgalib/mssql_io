@@ -19,11 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shortened documentation from 577 to 200 lines
 - Variable naming in examples (conn → request)
 - Description shortened to 87 characters
+- Simplified example app (423 → 263 lines)
+- Updated to latest dependencies (ffi 2.1.4, http 1.6.0)
 
 ### Removed
 - Non-functional CI workflow
 - Unnecessary documentation files
 - Redundant guides and summaries
+- CONTRIBUTING.md file
+- Deprecated js package
 
 ### Fixed
 - Package validation warnings resolved
