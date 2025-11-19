@@ -16,8 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Cleaned and simplified README documentation
 - Removed all emojis for cleaner presentation
-- Shortened documentation from 577 to 196 lines
+- Shortened documentation from 577 to 200 lines
 - Variable naming in examples (conn → request)
+- Description shortened to 87 characters
 
 ### Removed
 - Non-functional CI workflow
@@ -28,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Package validation warnings resolved
 - Unused dependencies removed (mockito, build_runner, ffigen)
 - Git tracking issues with deleted files
+- Super parameters in exception classes
+- All analyzer issues resolved
+
+### Known Limitations
+- WASM compatibility not yet implemented (planned for future release)
+- Web platform requires backend API server
 
 ## [0.0.1] - 2025-11-18
 
@@ -96,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned for Future Releases
+- WASM compatibility for web platform
 - Connection pooling
 - Stored procedure support with output parameters
 - Streaming large result sets
