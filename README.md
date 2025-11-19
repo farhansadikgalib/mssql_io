@@ -190,7 +190,7 @@ await request.getData("SELECT * FROM Users WHERE Name = '$userInput'");
 ```bash
 flutter clean
 flutter pub get
-flutter build apk  # or ios
+flutter build apk # or ios, macos, windows, linux
 ```
 
 ## Author
