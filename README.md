@@ -100,16 +100,8 @@ await request.getData("SELECT * FROM Users WHERE Name = '$userInput'");
 - Mobile: Run `./build_freetds.sh` in android/ or ios/
 - Desktop: Install FreeTDS
 
-## Links
-
-- [API Documentation](https://pub.dev/documentation/mssql_io/latest/)
-- [Example App](example/)
-- [Issues](https://github.com/farhansadikgalib/mssql_io/issues)
 
 ## Author
 
 [Farhan Sadik Galib](https://farhansadikgalib.com/)
 
-## License
-
-MIT
