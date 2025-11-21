@@ -210,18 +210,19 @@ void main() {
       ''');
 
       // Bulk insert
-      final rows = List.generate(
-        100,
-        (i) => {'Id': i, 'Name': 'User$i'},
-      );
+      final rows = List.generate(100, (i) => {'Id': i, 'Name': 'User$i'});
 
-      final inserted =
-          await request.bulkInsert('BulkTest', rows, batchSize: 50);
+      final inserted = await request.bulkInsert(
+        'BulkTest',
+        rows,
+        batchSize: 50,
+      );
       expect(inserted, greaterThan(0));
 
       // Verify
-      final result =
-          await request.getData('SELECT COUNT(*) AS cnt FROM BulkTest');
+      final result = await request.getData(
+        'SELECT COUNT(*) AS cnt FROM BulkTest',
+      );
       expect(result.rows[0]['cnt'], greaterThan(0));
 
       // Cleanup

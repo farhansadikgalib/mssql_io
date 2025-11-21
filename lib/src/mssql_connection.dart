@@ -111,7 +111,7 @@ class MssqlConnection {
 
       if (handle <= 0) {
         final error = _getLastError(handle);
-        
+
         // Check if this is the stub implementation error
         if (handle == -1000 || error.contains('FreeTDS not available')) {
           throw ConnectionException(
@@ -127,7 +127,7 @@ class MssqlConnection {
             errorCode: handle,
           );
         }
-        
+
         throw ConnectionException(
           'Failed to connect to SQL Server',
           details: error,

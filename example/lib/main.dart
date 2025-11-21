@@ -31,8 +31,9 @@ class _HomePageState extends State<HomePage> {
   final _dbCtrl = TextEditingController(text: 'TestDB');
   final _userCtrl = TextEditingController(text: 'sa');
   final _passCtrl = TextEditingController(text: 'Password123');
-  final _queryCtrl =
-      TextEditingController(text: 'SELECT 1 AS num, \'Hello\' AS msg');
+  final _queryCtrl = TextEditingController(
+    text: 'SELECT 1 AS num, \'Hello\' AS msg',
+  );
 
   bool _connected = false;
   String _output = 'Ready to connect';
@@ -40,8 +41,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    [_hostCtrl, _portCtrl, _dbCtrl, _userCtrl, _passCtrl, _queryCtrl]
-        .forEach((c) => c.dispose());
+    [
+      _hostCtrl,
+      _portCtrl,
+      _dbCtrl,
+      _userCtrl,
+      _passCtrl,
+      _queryCtrl,
+    ].forEach((c) => c.dispose());
     super.dispose();
   }
 
@@ -83,10 +90,13 @@ class _HomePageState extends State<HomePage> {
     setState(() => _loading = true);
     try {
       final result = await _request.getData(_queryCtrl.text);
-      setState(() => _output = 'Success!\n'
-          'Columns: ${result.columns.join(", ")}\n'
-          'Rows: ${result.rowCount}\n\n'
-          '${result.rows.take(10).join("\n")}');
+      setState(
+        () => _output =
+            'Success!\n'
+            'Columns: ${result.columns.join(", ")}\n'
+            'Rows: ${result.rowCount}\n\n'
+            '${result.rows.take(10).join("\n")}',
+      );
     } catch (e) {
       setState(() => _output = 'Error: $e');
     } finally {
@@ -105,12 +115,16 @@ class _HomePageState extends State<HomePage> {
         CREATE TABLE TempTest (Id INT, Value NVARCHAR(50));
       ''');
       await _request.writeData(
-          'INSERT INTO TempTest VALUES (1, \'Test1\'), (2, \'Test2\')');
+        'INSERT INTO TempTest VALUES (1, \'Test1\'), (2, \'Test2\')',
+      );
       final result = await _request.getData('SELECT * FROM TempTest');
       await _request.rollback();
 
-      setState(() => _output = 'Transaction Success!\n'
-          'Inserted ${result.rowCount} rows, then rolled back\n\n${result.rows}');
+      setState(
+        () => _output =
+            'Transaction Success!\n'
+            'Inserted ${result.rowCount} rows, then rolled back\n\n${result.rows}',
+      );
     } catch (e) {
       try {
         await _request.rollback();
@@ -133,8 +147,9 @@ class _HomePageState extends State<HomePage> {
           SqlParameter(name: 'age', value: 25),
         ],
       );
-      setState(() =>
-          _output = 'Parameterized Query Success!\n\n${result.rows.first}');
+      setState(
+        () => _output = 'Parameterized Query Success!\n\n${result.rows.first}',
+      );
     } catch (e) {
       setState(() => _output = 'Error: $e');
     } finally {
@@ -142,8 +157,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildField(String label, TextEditingController ctrl,
-      {bool obscure = false}) {
+  Widget _buildField(
+    String label,
+    TextEditingController ctrl, {
+    bool obscure = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
@@ -152,8 +170,10 @@ class _HomePageState extends State<HomePage> {
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
         ),
       ),
     );
@@ -170,8 +190,9 @@ class _HomePageState extends State<HomePage> {
             child: Center(
               child: Text(
                 _connected ? 'Connected' : 'Disconnected',
-                style:
-                    TextStyle(color: _connected ? Colors.green : Colors.grey),
+                style: TextStyle(
+                  color: _connected ? Colors.green : Colors.grey,
+                ),
               ),
             ),
           ),
@@ -202,7 +223,8 @@ class _HomePageState extends State<HomePage> {
                         child: ElevatedButton(
                           onPressed: !_connected ? null : _disconnect,
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red),
+                            backgroundColor: Colors.red,
+                          ),
                           child: const Text('Disconnect'),
                         ),
                       ),
@@ -241,8 +263,10 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 24),
                   const Divider(),
                   const SizedBox(height: 16),
-                  const Text('Output:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Output:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -250,11 +274,15 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    constraints:
-                        const BoxConstraints(minHeight: 100, maxHeight: 400),
+                    constraints: const BoxConstraints(
+                      minHeight: 100,
+                      maxHeight: 400,
+                    ),
                     child: SingleChildScrollView(
-                      child:
-                          Text(_output, style: const TextStyle(fontSize: 12)),
+                      child: Text(
+                        _output,
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
                   ),
                 ],
