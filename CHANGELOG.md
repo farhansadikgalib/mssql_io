@@ -10,18 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Stub implementation for building without FreeTDS
 - Optional CMake build for better compatibility
+- Mobile setup guide (SETUP_MOBILE.md) with detailed instructions
+- Improved FreeTDS detection for Android and iOS
+- Better error messages when FreeTDS is not available
 
 ### Changed
 - Consistent variable naming throughout (_conn → _request)
 - Simplified example app code structure (423 → 266 lines)
 - Cleaner and more developer-friendly examples
-- README shortened to 117 lines (from 200)
+- README shortened with clearer mobile setup instructions
 - FreeTDS now optional for initial builds
+- Android build.gradle now auto-detects FreeTDS paths
+- iOS podspec builds static libraries correctly
 
 ### Fixed
 - CMake build errors when FreeTDS not available
 - Android release APK build issues
 - Build system now works without FreeTDS (stub mode)
+- Android FreeTDS linking - proper path detection and CMake configuration
+- iOS FreeTDS linking - static library build and universal binary creation
+- Connection error messages now clearly indicate FreeTDS setup requirements
 
 ## [0.0.2]
 
