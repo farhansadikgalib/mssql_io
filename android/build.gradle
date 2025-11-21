@@ -35,25 +35,27 @@ android {
         minSdkVersion 21
         targetSdkVersion 34
 
-        externalNativeBuild {
-            cmake {
-                arguments "-DANDROID_STL=c++_shared",
-                          "-DFREETDS_INCLUDE_DIR=${project.projectDir}/src/main/cpp/freetds/include",
-                          "-DFREETDS_LIBRARY_DIR=${project.projectDir}/src/main/jniLibs/\${ANDROID_ABI}"
-                cppFlags "-std=c++11"
+        // CMake build is optional - only if native source exists
+        if (file("../src/CMakeLists.txt").exists()) {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DANDROID_STL=c++_shared"
+                    cppFlags "-std=c++11"
+                }
             }
-        }
 
-        ndk {
-            // Specify ABIs to build for
-            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            ndk {
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            }
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path "../src/CMakeLists.txt"
-            version "3.22.1"
+    // CMake is optional
+    if (file("../src/CMakeLists.txt").exists()) {
+        externalNativeBuild {
+            cmake {
+                path "../src/CMakeLists.txt"
+            }
         }
     }
 

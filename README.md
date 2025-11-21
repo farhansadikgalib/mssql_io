@@ -11,13 +11,15 @@ dependencies:
 
 ## Quick Setup
 
-**Mobile:**
+**The plugin will build without FreeTDS** (stub implementation), but you need FreeTDS for actual database connections.
+
+**Mobile (for production):**
 ```bash
-cd android && ./build_freetds.sh  # Android (15-20 min first time)
-cd ios && ./build_freetds.sh      # iOS - macOS only (10-15 min)
+cd android && ./build_freetds.sh  # Android
+cd ios && ./build_freetds.sh      # iOS (macOS only)
 ```
 
-**Desktop:**
+**Desktop (for production):**
 ```bash
 brew install freetds              # macOS
 sudo apt-get install freetds-dev  # Linux
