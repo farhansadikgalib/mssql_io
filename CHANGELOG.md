@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5]
+
+### Fixed
+- Android build now properly detects FreeTDS before setting source files
+- CMake source file paths now use explicit CMAKE_CURRENT_SOURCE_DIR for better reliability
+- Build system gracefully handles missing FreeTDS paths without fatal errors
+- Android builds successfully with stub implementation when FreeTDS is not available
+
+### Changed
+- Improved CMake build logic to check FreeTDS availability before compilation
+- Better error handling in Android build configuration
+
 ## [0.0.4]
 
 ### Added
