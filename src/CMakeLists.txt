@@ -30,21 +30,55 @@ else()
     set(SOURCES mssql_native_stub.cpp)
 endif()
 
-# Create shared library
-add_library(mssql_io SHARED ${SOURCES} ${HEADERS})
+# Create library (shared for desktop, static for iOS/Android)
+if(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    add_library(mssql_io STATIC ${SOURCES} ${HEADERS})
+elseif(ANDROID)
+    add_library(mssql_io SHARED ${SOURCES} ${HEADERS})
+else()
+    add_library(mssql_io SHARED ${SOURCES} ${HEADERS})
+endif()
 
 # Link FreeTDS if available
 if(USE_FREETDS)
     if(ANDROID)
-        # Android: Use provided paths from Gradle
+        # Android: Use provided paths from Gradle or try to find in standard locations
         if(DEFINED FREETDS_INCLUDE_DIR AND DEFINED FREETDS_LIBRARY_DIR)
             message(STATUS "Using Android FreeTDS from: ${FREETDS_LIBRARY_DIR}")
             target_include_directories(mssql_io PRIVATE ${FREETDS_INCLUDE_DIR})
             target_link_directories(mssql_io PRIVATE ${FREETDS_LIBRARY_DIR})
             target_link_libraries(mssql_io PRIVATE sybdb)
         else()
-            message(WARNING "FreeTDS paths not provided for Android")
-            set(USE_FREETDS OFF)
+            # Try to find FreeTDS in Android project structure
+            find_path(FREETDS_INCLUDE_DIR sybdb.h
+                PATHS
+                ${CMAKE_CURRENT_SOURCE_DIR}/../android/src/main/cpp/freetds/include
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../android/src/main/cpp/freetds/include
+                NO_DEFAULT_PATH
+            )
+            
+            if(FREETDS_INCLUDE_DIR AND ANDROID_ABI)
+                # Find library for current ABI
+                find_library(FREETDS_LIBRARY
+                    NAMES sybdb
+                    PATHS
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../android/src/main/jniLibs/${ANDROID_ABI}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../../android/src/main/jniLibs/${ANDROID_ABI}
+                    NO_DEFAULT_PATH
+                )
+                
+                if(FREETDS_LIBRARY)
+                    message(STATUS "Found Android FreeTDS: ${FREETDS_LIBRARY}")
+                    target_include_directories(mssql_io PRIVATE ${FREETDS_INCLUDE_DIR})
+                    target_link_libraries(mssql_io PRIVATE ${FREETDS_LIBRARY})
+                else()
+                    message(WARNING "FreeTDS library not found for ${ANDROID_ABI}. Run android/build_freetds.sh first.")
+                    set(USE_FREETDS OFF)
+                endif()
+            else()
+                message(WARNING "FreeTDS not found for Android. Run android/build_freetds.sh first.")
+                set(USE_FREETDS OFF)
+            endif()
         endif()
     else()
         # Desktop platforms: Find system FreeTDS

@@ -37,9 +37,19 @@ android {
 
         // CMake build is optional - only if native source exists
         if (file("../src/CMakeLists.txt").exists()) {
+            // Check if FreeTDS is built
+            def freetdsInclude = file("src/main/cpp/freetds/include").exists() ? 
+                file("src/main/cpp/freetds/include").absolutePath : null
+            def freetdsLibDir = file("src/main/jniLibs").exists() ? 
+                file("src/main/jniLibs").absolutePath : null
+            
             externalNativeBuild {
                 cmake {
                     arguments "-DANDROID_STL=c++_shared"
+                    if (freetdsInclude != null && freetdsLibDir != null) {
+                        arguments "-DFREETDS_INCLUDE_DIR=${freetdsInclude}"
+                        arguments "-DFREETDS_LIBRARY_DIR=${freetdsLibDir}"
+                    }
                     cppFlags "-std=c++11"
                 }
             }

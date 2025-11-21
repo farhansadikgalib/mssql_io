@@ -51,37 +51,47 @@ Supports queries, transactions, bulk insert, and more.
       mkdir -p build
       cd build
       
-      # Build for device (arm64)
-      cmake ../../src \
+      # Check if cmake is available
+      if ! command -v cmake &> /dev/null; then
+        echo "Error: cmake is required but not installed. Install with: brew install cmake"
+        exit 1
+      fi
+      
+      # Build for device (arm64) - static library
+      mkdir -p device
+      cd device
+      cmake ../../../src \
         -DCMAKE_SYSTEM_NAME=iOS \
         -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
         -DCMAKE_OSX_ARCHITECTURES=arm64 \
-        -DCMAKE_C_FLAGS="-fembed-bitcode" \
-        -DCMAKE_CXX_FLAGS="-fembed-bitcode" \
-        -DFREETDS_INCLUDE_DIR="${PWD}/../Frameworks/Headers" \
-        -DFREETDS_LIBRARY="${PWD}/../Frameworks/libsybdb.a"
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DFREETDS_INCLUDE_DIR="${PWD}/../../Frameworks/Headers" \
+        -DFREETDS_LIBRARY="${PWD}/../../Frameworks/libsybdb.a"
       
-      make
-      cp libmssql_io.dylib ../Frameworks/libmssql_io_device.a
+      make -j$(sysctl -n hw.ncpu 2>/dev/null || echo 2)
+      cd ..
       
-      # Build for simulator (x86_64)
-      rm -rf *
-      cmake ../../src \
+      # Build for simulator (x86_64) - static library  
+      mkdir -p simulator
+      cd simulator
+      cmake ../../../src \
         -DCMAKE_SYSTEM_NAME=iOS \
         -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
         -DCMAKE_OSX_ARCHITECTURES=x86_64 \
         -DCMAKE_OSX_SYSROOT=iphonesimulator \
-        -DFREETDS_INCLUDE_DIR="${PWD}/../Frameworks/Headers" \
-        -DFREETDS_LIBRARY="${PWD}/../Frameworks/libsybdb.a"
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DFREETDS_INCLUDE_DIR="${PWD}/../../Frameworks/Headers" \
+        -DFREETDS_LIBRARY="${PWD}/../../Frameworks/libsybdb.a"
       
-      make
-      cp libmssql_io.dylib ../Frameworks/libmssql_io_sim.a
-      
-      # Create universal library
+      make -j$(sysctl -n hw.ncpu 2>/dev/null || echo 2)
       cd ..
-      lipo -create Frameworks/libmssql_io_device.a Frameworks/libmssql_io_sim.a -output Frameworks/libmssql_io.a
-      rm Frameworks/libmssql_io_device.a Frameworks/libmssql_io_sim.a
       
+      # Create universal library from static libs
+      lipo -create device/libmssql_io.a simulator/libmssql_io.a -output ../Frameworks/libmssql_io.a
+      
+      cd ..
       echo "✓ Native libraries built successfully"
     else
       echo "Native library already built"
