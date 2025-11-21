@@ -64,13 +64,14 @@ else()
 endif()
 
 # Source files - set AFTER FreeTDS check
-set(HEADERS mssql_native.h)
+# Use CMAKE_CURRENT_SOURCE_DIR to ensure correct path resolution
+set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/mssql_native.h)
 
 if(USE_FREETDS)
-    set(SOURCES mssql_native.cpp)
+    set(SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mssql_native.cpp)
     message(STATUS "Building with FreeTDS support")
 else()
-    set(SOURCES mssql_native_stub.cpp)
+    set(SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mssql_native_stub.cpp)
     message(STATUS "Building stub implementation (FreeTDS not available)")
 endif()
 
