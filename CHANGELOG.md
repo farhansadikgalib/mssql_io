@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.4]
+
+### Added
+- Mobile setup guide (SETUP_MOBILE.md) with detailed instructions
+- Improved FreeTDS detection for Android and iOS
+- Better error messages when FreeTDS is not available
+
+### Changed
+- Android build.gradle now auto-detects FreeTDS paths
+- iOS podspec builds static libraries correctly
+- README shortened with clearer mobile setup instructions
+
+### Fixed
+- Android FreeTDS linking - proper path detection and CMake configuration
+- iOS FreeTDS linking - static library build and universal binary creation
+- Connection error messages now clearly indicate FreeTDS setup requirements
+
 ## [0.0.3]
 
 ### Added

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'mssql_io'
-  s.version          = '0.0.3'
+  s.version          = '0.0.4'
   s.summary          = 'Microsoft SQL Server plugin for Flutter using FreeTDS'
   s.description      = <<-DESC
 A Flutter plugin that provides Microsoft SQL Server access using Dart FFI and FreeTDS.

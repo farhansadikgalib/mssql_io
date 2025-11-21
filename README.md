@@ -6,7 +6,7 @@ Flutter plugin for Microsoft SQL Server. Works on Android, iOS, Windows, macOS, 
 
 ```yaml
 dependencies:
-  mssql_io: ^0.0.3
+  mssql_io: ^0.0.4
 ```
 
 ## Quick Setup
