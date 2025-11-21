@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **0.0.4**: Android/iOS FreeTDS linking fixes and improved build system
 - **0.0.3**: Consistent naming and cleaner examples
 - **0.0.2**: Web support and documentation cleanup
 - **0.0.1**: Initial release with full feature set
