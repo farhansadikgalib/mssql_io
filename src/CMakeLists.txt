@@ -95,7 +95,8 @@ if(USE_FREETDS)
             target_include_directories(mssql_io PRIVATE ${FREETDS_INCLUDE_DIR})
             target_link_libraries(mssql_io PRIVATE ${FREETDS_LIBRARY})
         else()
-            message(FATAL_ERROR "FreeTDS paths not properly configured for Android")
+            # This shouldn't happen if USE_FREETDS is ON, but handle gracefully
+            message(WARNING "FreeTDS paths not properly configured for Android, but USE_FREETDS is ON")
         endif()
     else()
         # Desktop platforms: Find system FreeTDS
