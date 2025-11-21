@@ -111,6 +111,23 @@ class MssqlConnection {
 
       if (handle <= 0) {
         final error = _getLastError(handle);
+        
+        // Check if this is the stub implementation error
+        if (handle == -1000 || error.contains('FreeTDS not available')) {
+          throw ConnectionException(
+            'FreeTDS library not found. The plugin is using a stub implementation.\n\n'
+            'To connect to SQL Server, you need to build FreeTDS:\n'
+            '• Android: Run `cd android && ./build_freetds.sh`\n'
+            '• iOS: Run `cd ios && ./build_freetds.sh` (macOS only)\n'
+            '• macOS: Install via `brew install freetds`\n'
+            '• Linux: Install via `sudo apt-get install freetds-dev`\n'
+            '• Windows: Install via `vcpkg install freetds:x64-windows`\n\n'
+            'See README.md for detailed setup instructions.',
+            details: error,
+            errorCode: handle,
+          );
+        }
+        
         throw ConnectionException(
           'Failed to connect to SQL Server',
           details: error,

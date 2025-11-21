@@ -11,12 +11,13 @@ set(USE_FREETDS ON)
 # Try to find FreeTDS first
 if(NOT ANDROID)
     find_path(FREETDS_CHECK sybdb.h
-        PATHS /usr/include /usr/local/include /opt/homebrew/include
-        NO_DEFAULT_PATH
+        PATHS /usr/include /usr/local/include /opt/homebrew/include /opt/local/include
     )
     if(NOT FREETDS_CHECK)
         set(USE_FREETDS OFF)
         message(WARNING "FreeTDS not found. Building stub implementation. Install FreeTDS for production use.")
+    else()
+        message(STATUS "Found FreeTDS headers at: ${FREETDS_CHECK}")
     endif()
 endif()
 
