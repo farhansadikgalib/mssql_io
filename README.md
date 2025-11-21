@@ -13,20 +13,54 @@ dependencies:
 
 **The plugin will build without FreeTDS** (stub implementation), but you need FreeTDS for actual database connections.
 
-**Mobile (for production):**
-```bash
-cd android && ./build_freetds.sh  # Android
-cd ios && ./build_freetds.sh      # iOS (macOS only)
-```
+### Android Setup
 
-**Desktop (for production):**
+1. **Build FreeTDS for Android** (one-time, ~15-20 minutes):
+   ```bash
+   cd android
+   chmod +x build_freetds.sh
+   ./build_freetds.sh
+   ```
+   Requires: Android NDK (set `ANDROID_NDK_HOME` or install via Android Studio)
+
+2. **Rebuild your app**:
+   ```bash
+   flutter clean
+   flutter pub get
+   flutter build apk
+   ```
+
+### iOS Setup
+
+1. **Build FreeTDS for iOS** (one-time, ~10-15 minutes, macOS only):
+   ```bash
+   cd ios
+   chmod +x build_freetds.sh
+   ./build_freetds.sh
+   ```
+   Requires: Xcode, CMake (`brew install cmake`)
+
+2. **Install pods** (builds native library automatically):
+   ```bash
+   cd ios
+   pod install
+   cd ..
+   flutter clean
+   flutter pub get
+   flutter run
+   ```
+
+### Desktop Setup
+
 ```bash
 brew install freetds              # macOS
 sudo apt-get install freetds-dev  # Linux
 vcpkg install freetds:x64-windows # Windows
 ```
 
-**Web:** Requires backend API proxy.
+### Web Setup
+
+Requires backend API proxy. See [Web Platform](#web-platform) section.
 
 ## Usage
 
