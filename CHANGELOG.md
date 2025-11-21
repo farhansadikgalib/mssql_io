@@ -7,10 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.3]
 
+### Added
+- Stub implementation for building without FreeTDS
+- Optional CMake build for better compatibility
+
 ### Changed
 - Consistent variable naming throughout (_conn → _request)
-- Simplified example app code structure
+- Simplified example app code structure (423 → 266 lines)
 - Cleaner and more developer-friendly examples
+- README shortened to 117 lines (from 200)
+- FreeTDS now optional for initial builds
+
+### Fixed
+- CMake build errors when FreeTDS not available
+- Android release APK build issues
+- Build system now works without FreeTDS (stub mode)
 
 ## [0.0.2]
 
