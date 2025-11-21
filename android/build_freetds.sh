@@ -111,7 +111,7 @@ for ABI in "${ABIS[@]}"; do
     make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
     make install
     
-    # Copy libraries to jniLibs
+    # Copy libraries and headers to jniLibs
     JNILIBS_DIR="$INSTALL_DIR/$ABI"
     mkdir -p "$JNILIBS_DIR"
     cp "$BUILD_ABI_DIR/lib/libsybdb.so"* "$JNILIBS_DIR/"
@@ -119,6 +119,15 @@ for ABI in "${ABIS[@]}"; do
     # Rename to canonical name
     if [ -f "$JNILIBS_DIR/libsybdb.so.5" ]; then
         cp "$JNILIBS_DIR/libsybdb.so.5" "$JNILIBS_DIR/libsybdb.so"
+    fi
+    
+    # Copy headers to include directory
+    INCLUDE_DIR="$JNILIBS_DIR/include"
+    mkdir -p "$INCLUDE_DIR"
+    cp -r "$BUILD_ABI_DIR/include"/* "$INCLUDE_DIR/" 2>/dev/null || true
+    # Also try copying from source if install didn't work
+    if [ ! -f "$INCLUDE_DIR/sybdb.h" ]; then
+        cp -r "$BUILD_DIR/freetds-${FREETDS_VERSION}/include"/* "$INCLUDE_DIR/" 2>/dev/null || true
     fi
     
     echo "✓ Built and installed for $ABI"
