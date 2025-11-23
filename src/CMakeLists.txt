@@ -8,8 +8,18 @@ set(CMAKE_C_STANDARD 99)
 # Check if FreeTDS is available BEFORE setting sources
 set(USE_FREETDS OFF)
 
+# Check if FreeTDS paths were provided via CMake arguments (iOS/Android)
+if(DEFINED FREETDS_INCLUDE_DIR AND DEFINED FREETDS_LIBRARY)
+    if(EXISTS "${FREETDS_INCLUDE_DIR}/sybdb.h" AND EXISTS "${FREETDS_LIBRARY}")
+        set(USE_FREETDS ON)
+        message(STATUS "Using FreeTDS from provided paths: ${FREETDS_LIBRARY}")
+    else()
+        message(WARNING "FreeTDS paths provided but files not found. Building stub implementation.")
+    endif()
+endif()
+
 # For Android: Check FreeTDS availability first
-if(ANDROID)
+if(ANDROID AND NOT USE_FREETDS)
     # Check if paths were provided by Gradle
     if(DEFINED FREETDS_INCLUDE_DIR AND DEFINED FREETDS_LIBRARY_DIR)
         # Verify the include directory actually exists and has sybdb.h
@@ -50,7 +60,35 @@ if(ANDROID)
             message(WARNING "FreeTDS not found for Android ${ANDROID_ABI}. Building stub implementation. Run android/build_freetds.sh to build FreeTDS.")
         endif()
     endif()
-else()
+elseif(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS" AND NOT USE_FREETDS)
+    # iOS: Check for FreeTDS in Frameworks directory
+    # Try to find FreeTDS in common iOS locations
+    find_path(FREETDS_INCLUDE_DIR sybdb.h
+        PATHS
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ios/Frameworks/Headers
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../ios/Frameworks/Headers
+        NO_DEFAULT_PATH
+    )
+    
+    if(FREETDS_INCLUDE_DIR)
+        find_library(FREETDS_LIBRARY
+            NAMES sybdb libsybdb
+            PATHS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../ios/Frameworks
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../ios/Frameworks
+            NO_DEFAULT_PATH
+        )
+        
+        if(FREETDS_LIBRARY)
+            set(USE_FREETDS ON)
+            message(STATUS "Found iOS FreeTDS: ${FREETDS_LIBRARY}")
+        endif()
+    endif()
+    
+    if(NOT USE_FREETDS)
+        message(WARNING "FreeTDS not found for iOS. Building stub implementation. Run pod install to build FreeTDS.")
+    endif()
+elseif(NOT USE_FREETDS)
     # Desktop platforms: Find system FreeTDS
     find_path(FREETDS_CHECK sybdb.h
         PATHS /usr/include /usr/local/include /opt/homebrew/include /opt/local/include
@@ -86,7 +124,18 @@ endif()
 
 # Link FreeTDS if available (only if USE_FREETDS is ON)
 if(USE_FREETDS)
-    if(ANDROID)
+    if(APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        # iOS: Use provided paths or found paths
+        if(DEFINED FREETDS_INCLUDE_DIR AND DEFINED FREETDS_LIBRARY)
+            target_include_directories(mssql_io PRIVATE ${FREETDS_INCLUDE_DIR})
+            target_link_libraries(mssql_io PRIVATE ${FREETDS_LIBRARY})
+        else()
+            # Should not happen if USE_FREETDS is ON, but handle gracefully
+            message(WARNING "FreeTDS paths not properly configured for iOS, falling back to stub.")
+            set(SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mssql_native_stub.cpp)
+            message(STATUS "Reverting to stub implementation due to FreeTDS linking issues.")
+        endif()
+    elseif(ANDROID)
         # Android: Use provided paths from Gradle or previously found paths
         if(DEFINED FREETDS_INCLUDE_DIR AND DEFINED FREETDS_LIBRARY_DIR)
             target_include_directories(mssql_io PRIVATE ${FREETDS_INCLUDE_DIR})
@@ -133,6 +182,9 @@ endif()
 if(WIN32)
     target_compile_definitions(mssql_io PRIVATE WIN32_LEAN_AND_MEAN)
     target_link_libraries(mssql_io PRIVATE ws2_32)
+elseif(ANDROID)
+    # Android uses its own threading library, no need for pthread
+    target_link_libraries(mssql_io PRIVATE dl log)
 elseif(APPLE)
     set_target_properties(mssql_io PROPERTIES
         FRAMEWORK TRUE
