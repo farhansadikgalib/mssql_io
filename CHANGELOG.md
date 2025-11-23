@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.6]
+
+### Improved
+- **Enhanced iOS automatic FreeTDS building** - Better error handling and graceful fallback to stub
+- iOS podspec now validates FreeTDS build success before using it
+- Improved error messages and progress feedback during iOS builds
+- Better handling of missing prerequisites (Xcode tools, CMake)
+- Build scripts now executable by default
+
+### Fixed
+- iOS build_freetds.sh now properly validates each build step
+- CMake failures in iOS builds now gracefully fall back to stub implementation
+- Universal library creation only happens when both architectures build successfully
+
+### Changed
+- iOS prepare_command provides clearer progress messages
+- Better error detection and reporting throughout iOS build process
+
 ## [0.0.5]
 
 ### Added
@@ -185,7 +203,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
-- **0.0.5**: Android build fixes - proper FreeTDS detection and stub fallback
+- **0.0.6**: Enhanced iOS automatic FreeTDS building with improved error handling
+- **0.0.5**: Automatic FreeTDS building for Android and iOS
 - **0.0.4**: Android/iOS FreeTDS linking fixes and improved build system
 - **0.0.3**: Consistent naming and cleaner examples
 - **0.0.2**: Web support and documentation cleanup
