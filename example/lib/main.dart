@@ -91,8 +91,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final result = await _request.getData(_queryCtrl.text);
       setState(
-        () => _output =
-            'Success!\n'
+        () => _output = 'Success!\n'
             'Columns: ${result.columns.join(", ")}\n'
             'Rows: ${result.rowCount}\n\n'
             '${result.rows.take(10).join("\n")}',
@@ -121,8 +120,7 @@ class _HomePageState extends State<HomePage> {
       await _request.rollback();
 
       setState(
-        () => _output =
-            'Transaction Success!\n'
+        () => _output = 'Transaction Success!\n'
             'Inserted ${result.rowCount} rows, then rolled back\n\n${result.rows}',
       );
     } catch (e) {
