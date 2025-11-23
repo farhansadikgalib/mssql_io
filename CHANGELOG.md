@@ -7,21 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.6]
 
+### Added
+- **Automatic FreeTDS download and build for Android and iOS** - FreeTDS is automatically downloaded and built during package installation
+- Android Gradle task (`buildFreeTDS`) automatically builds FreeTDS before native compilation
+- iOS CocoaPods `prepare_command` automatically builds FreeTDS during `pod install`
+- Enhanced error handling and build verification for both platforms
+
 ### Improved
 - **Enhanced iOS automatic FreeTDS building** - Better error handling and graceful fallback to stub
 - iOS podspec now validates FreeTDS build success before using it
 - Improved error messages and progress feedback during iOS builds
 - Better handling of missing prerequisites (Xcode tools, CMake)
 - Build scripts now executable by default
+- Android build script with better download verification and error handling
+- Enhanced Gradle task to verify build success for all ABIs
 
 ### Fixed
+- iOS FreeTDS detection in CMakeLists.txt - Added iOS-specific detection before desktop check
+- iOS CMake now properly finds FreeTDS when provided via CMake arguments
+- Android pthread linking issue - Fixed to use `log` instead of `pthread` for Android
 - iOS build_freetds.sh now properly validates each build step
 - CMake failures in iOS builds now gracefully fall back to stub implementation
 - Universal library creation only happens when both architectures build successfully
+- Android build now continues with stub when NDK is not available (no build failure)
 
 ### Changed
 - iOS prepare_command provides clearer progress messages
 - Better error detection and reporting throughout iOS build process
+- CMakeLists.txt improved to check provided FreeTDS paths first
+- Android build.gradle enhanced with better NDK detection and environment variable passing
 
 ## [0.0.5]
 
@@ -203,7 +217,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
-- **0.0.6**: Enhanced iOS automatic FreeTDS building with improved error handling
+- **0.0.6**: Automatic FreeTDS download and build for Android/iOS, improved error handling, tested and verified
 - **0.0.5**: Automatic FreeTDS building for Android and iOS
 - **0.0.4**: Android/iOS FreeTDS linking fixes and improved build system
 - **0.0.3**: Consistent naming and cleaner examples
