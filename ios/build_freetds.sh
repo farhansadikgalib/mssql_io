@@ -1,5 +1,6 @@
 #!/bin/bash
 # Build FreeTDS for iOS (device and simulator)
+# This script is automatically called by CocoaPods during pod install
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

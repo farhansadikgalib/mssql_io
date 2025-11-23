@@ -11,44 +11,39 @@ dependencies:
 
 ## Quick Setup
 
-**The plugin will build without FreeTDS** (stub implementation), but you need FreeTDS for actual database connections.
+**FreeTDS is automatically downloaded and built during package installation** for Android and iOS. The plugin will build without FreeTDS (stub implementation) if FreeTDS cannot be built, but you need FreeTDS for actual database connections.
 
 ### Android Setup
 
-1. **Build FreeTDS for Android** (one-time, ~15-20 minutes):
-   ```bash
-   cd android
-   chmod +x build_freetds.sh
-   ./build_freetds.sh
-   ```
-   Requires: Android NDK (set `ANDROID_NDK_HOME` or install via Android Studio)
+**FreeTDS builds automatically** when you run `flutter build` or `flutter pub get`. First build may take 15-20 minutes.
 
-2. **Rebuild your app**:
-   ```bash
-   flutter clean
-   flutter pub get
-   flutter build apk
-   ```
+**Requirements:**
+- Android NDK (set `ANDROID_NDK_HOME` or install via Android Studio)
+
+**Manual build (optional):**
+```bash
+cd android
+chmod +x build_freetds.sh
+./build_freetds.sh
+```
 
 ### iOS Setup
 
-1. **Build FreeTDS for iOS** (one-time, ~10-15 minutes, macOS only):
-   ```bash
-   cd ios
-   chmod +x build_freetds.sh
-   ./build_freetds.sh
-   ```
-   Requires: Xcode, CMake (`brew install cmake`)
+**FreeTDS builds automatically** when you run `pod install`. First build may take 10-15 minutes.
 
-2. **Install pods** (builds native library automatically):
-   ```bash
-   cd ios
-   pod install
-   cd ..
-   flutter clean
-   flutter pub get
-   flutter run
-   ```
+**Requirements:**
+- macOS with Xcode
+- CMake (`brew install cmake`)
+
+**Setup:**
+```bash
+cd ios
+pod install
+cd ..
+flutter clean
+flutter pub get
+flutter run
+```
 
 ### Desktop Setup
 

@@ -81,3 +81,95 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.7.0'
 }
 
+// Task to automatically build FreeTDS if not already built
+task buildFreeTDS {
+    description = 'Automatically builds FreeTDS for Android if not already present'
+    group = 'build'
+    
+    def buildScript = file("build_freetds.sh")
+    def jniLibsDir = file("src/main/jniLibs")
+    def requiredABIs = ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']
+    
+    // Check if FreeTDS is already built for all ABIs
+    def freetdsBuilt = true
+    requiredABIs.each { abi ->
+        def abiDir = new File(jniLibsDir, abi)
+        def libFile = new File(abiDir, "libsybdb.so")
+        def includeFile = new File(abiDir, "include/sybdb.h")
+        if (!libFile.exists() || !includeFile.exists()) {
+            freetdsBuilt = false
+        }
+    }
+    
+    // Only run if FreeTDS is not built and script exists
+    onlyIf {
+        !freetdsBuilt && buildScript.exists()
+    }
+    
+    doLast {
+        println "=========================================="
+        println "Building FreeTDS for Android"
+        println "=========================================="
+        println "FreeTDS not found. Building automatically..."
+        println "This may take 15-20 minutes on first build."
+        println ""
+        
+        // Make script executable
+        buildScript.setExecutable(true)
+        
+        // Check if NDK is available
+        def ndkHome = System.getenv("ANDROID_NDK_HOME")
+        if (!ndkHome) {
+            def androidHome = System.getenv("ANDROID_HOME")
+            if (androidHome) {
+                def ndkDir = new File(androidHome, "ndk")
+                if (ndkDir.exists()) {
+                    def ndkVersions = ndkDir.listFiles().findAll { it.isDirectory() }
+                    if (ndkVersions) {
+                        ndkHome = ndkVersions.sort().last().absolutePath
+                    }
+                }
+            }
+        }
+        
+        if (!ndkHome || !new File(ndkHome).exists()) {
+            println "WARNING: Android NDK not found!"
+            println "The build will continue with stub implementation."
+            println "To build FreeTDS, install NDK via Android Studio:"
+            println "  Tools > SDK Manager > SDK Tools > NDK (Side by side)"
+            println "Then set: export ANDROID_NDK_HOME=\$ANDROID_HOME/ndk/[version]"
+            println ""
+            return
+        }
+        
+        // Run the build script
+        try {
+            exec {
+                workingDir buildScript.parentFile
+                commandLine 'bash', buildScript.absolutePath
+                ignoreExitValue false
+            }
+            println ""
+            println "✓ FreeTDS build complete!"
+        } catch (Exception e) {
+            println ""
+            println "WARNING: FreeTDS build failed: ${e.message}"
+            println "The build will continue with stub implementation."
+            println "You can manually build FreeTDS later by running:"
+            println "  cd android && ./build_freetds.sh"
+        }
+    }
+}
+
+// Make CMake build depend on FreeTDS build
+if (file("../src/CMakeLists.txt").exists()) {
+    tasks.whenTaskAdded { task ->
+        if (task.name.contains('externalNativeBuild') || task.name.contains('cmake')) {
+            task.dependsOn buildFreeTDS
+        }
+    }
+    
+    // Also hook into preBuild
+    preBuild.dependsOn buildFreeTDS
+}
+

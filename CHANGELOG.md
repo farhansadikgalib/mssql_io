@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.5]
 
+### Added
+- **Automatic FreeTDS building for Android and iOS** - FreeTDS is now automatically downloaded and built during package installation
+- Android Gradle task automatically builds FreeTDS before native compilation
+- iOS CocoaPods prepare_command automatically builds FreeTDS during pod install
+- Improved error messages and NDK detection for Android builds
+
 ### Fixed
 - Android build now properly detects FreeTDS before setting source files
 - CMake source file paths now use explicit CMAKE_CURRENT_SOURCE_DIR for better reliability
@@ -16,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Improved CMake build logic to check FreeTDS availability before compilation
 - Better error handling in Android build configuration
+- README updated to reflect automatic FreeTDS building (no manual steps required)
 
 ## [0.0.4]
 

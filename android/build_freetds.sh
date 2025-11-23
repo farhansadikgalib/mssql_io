@@ -1,5 +1,6 @@
 #!/bin/bash
 # Build FreeTDS for Android using NDK
+# This script is automatically called by Gradle during build
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -8,14 +9,28 @@ FREETDS_URL="https://www.freetds.org/files/stable/freetds-${FREETDS_VERSION}.tar
 
 # Android NDK path
 if [ -z "$ANDROID_NDK_HOME" ]; then
-    if [ -d "$ANDROID_HOME/ndk" ]; then
+    if [ -z "$ANDROID_HOME" ]; then
+        echo "Warning: ANDROID_HOME not set. Trying common locations..."
+        if [ -d "$HOME/Library/Android/sdk" ]; then
+            ANDROID_HOME="$HOME/Library/Android/sdk"
+        elif [ -d "$HOME/Android/Sdk" ]; then
+            ANDROID_HOME="$HOME/Android/Sdk"
+        fi
+    fi
+    
+    if [ -n "$ANDROID_HOME" ] && [ -d "$ANDROID_HOME/ndk" ]; then
         # Find the latest NDK version
         ANDROID_NDK_HOME=$(find "$ANDROID_HOME/ndk" -maxdepth 1 -type d | sort -V | tail -n 1)
-    else
-        echo "Error: ANDROID_NDK_HOME not set and NDK not found in ANDROID_HOME"
-        echo "Please set ANDROID_NDK_HOME or install Android NDK"
-        exit 1
     fi
+fi
+
+if [ -z "$ANDROID_NDK_HOME" ] || [ ! -d "$ANDROID_NDK_HOME" ]; then
+    echo "Error: Android NDK not found."
+    echo "Please set ANDROID_NDK_HOME or install Android NDK via Android Studio:"
+    echo "  Tools > SDK Manager > SDK Tools > NDK (Side by side)"
+    echo ""
+    echo "Then set: export ANDROID_NDK_HOME=\$ANDROID_HOME/ndk/[version]"
+    exit 1
 fi
 
 echo "Using NDK: $ANDROID_NDK_HOME"
