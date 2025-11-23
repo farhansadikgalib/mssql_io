@@ -49,6 +49,13 @@ for i in "${!ARCHS[@]}"; do
     echo "Building for $ARCH ($PLATFORM)"
     echo "========================================"
     
+    # Verify Xcode tools are available
+    if ! command -v xcrun &> /dev/null; then
+        echo "Error: xcrun not found. Xcode Command Line Tools required."
+        echo "Install with: xcode-select --install"
+        exit 1
+    fi
+    
     # Set SDK
     if [ "$PLATFORM" = "iphoneos" ]; then
         SDK="iphoneos"
@@ -69,7 +76,7 @@ for i in "${!ARCHS[@]}"; do
     export LDFLAGS="-arch $ARCH -isysroot $SDK_PATH -mios-version-min=$IOS_DEPLOYMENT_TARGET"
     
     # Configure
-    ./configure \
+    if ! ./configure \
         --host=$HOST \
         --prefix="$BUILD_ARCH_DIR" \
         --enable-static \
@@ -79,12 +86,22 @@ for i in "${!ARCHS[@]}"; do
         --disable-apps \
         --disable-server \
         --disable-pool \
-        --disable-debug
+        --disable-debug; then
+        echo "Error: Configure failed for $ARCH"
+        exit 1
+    fi
     
     # Build
-    make clean
-    make -j$(sysctl -n hw.ncpu)
-    make install
+    make clean || true
+    if ! make -j$(sysctl -n hw.ncpu 2>/dev/null || echo 2); then
+        echo "Error: Build failed for $ARCH"
+        exit 1
+    fi
+    
+    if ! make install; then
+        echo "Error: Install failed for $ARCH"
+        exit 1
+    fi
     
     echo "✓ Built for $ARCH"
 done
