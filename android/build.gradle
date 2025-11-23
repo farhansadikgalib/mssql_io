@@ -142,34 +142,75 @@ task buildFreeTDS {
             return
         }
         
+        // Set environment variable for NDK if found
+        def envVars = [:]
+        if (ndkHome) {
+            envVars['ANDROID_NDK_HOME'] = ndkHome
+        }
+        if (System.getenv("ANDROID_HOME")) {
+            envVars['ANDROID_HOME'] = System.getenv("ANDROID_HOME")
+        }
+        
         // Run the build script
         try {
             exec {
                 workingDir buildScript.parentFile
                 commandLine 'bash', buildScript.absolutePath
+                environment envVars
                 ignoreExitValue false
             }
-            println ""
-            println "✓ FreeTDS build complete!"
+            
+            // Verify build succeeded
+            def allBuilt = true
+            requiredABIs.each { abi ->
+                def abiDir = new File(jniLibsDir, abi)
+                def libFile = new File(abiDir, "libsybdb.so")
+                def includeFile = new File(abiDir, "include/sybdb.h")
+                if (!libFile.exists() || !includeFile.exists()) {
+                    allBuilt = false
+                }
+            }
+            
+            if (allBuilt) {
+                println ""
+                println "✓ FreeTDS build complete for all ABIs!"
+            } else {
+                throw new Exception("FreeTDS build completed but some ABIs are missing")
+            }
         } catch (Exception e) {
             println ""
             println "WARNING: FreeTDS build failed: ${e.message}"
             println "The build will continue with stub implementation."
             println "You can manually build FreeTDS later by running:"
             println "  cd android && ./build_freetds.sh"
+            // Don't fail the build - allow stub to be used
         }
     }
 }
 
 // Make CMake build depend on FreeTDS build
 if (file("../src/CMakeLists.txt").exists()) {
+    // Hook into all CMake-related tasks
     tasks.whenTaskAdded { task ->
-        if (task.name.contains('externalNativeBuild') || task.name.contains('cmake')) {
+        if (task.name.contains('externalNativeBuild') || 
+            task.name.contains('cmake') || 
+            task.name.contains('generateJsonModel')) {
             task.dependsOn buildFreeTDS
         }
     }
     
-    // Also hook into preBuild
+    // Ensure FreeTDS is built before any native compilation
+    afterEvaluate {
+        tasks.findAll { task ->
+            task.name.contains('externalNativeBuild') || 
+            task.name.contains('cmake') ||
+            task.name.contains('generateJsonModel')
+        }.each { task ->
+            task.dependsOn buildFreeTDS
+        }
+    }
+    
+    // Also hook into preBuild to ensure it runs early
     preBuild.dependsOn buildFreeTDS
 }
 

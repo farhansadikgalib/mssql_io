@@ -51,13 +51,29 @@ cd "$BUILD_DIR"
 # Download FreeTDS if not already downloaded
 if [ ! -f "freetds-${FREETDS_VERSION}.tar.gz" ]; then
     echo "Downloading FreeTDS ${FREETDS_VERSION}..."
-    curl -L -o "freetds-${FREETDS_VERSION}.tar.gz" "$FREETDS_URL"
+    echo "URL: $FREETDS_URL"
+    if ! curl -L -f -o "freetds-${FREETDS_VERSION}.tar.gz" "$FREETDS_URL"; then
+        echo "Error: Failed to download FreeTDS"
+        echo "Please check your internet connection and try again"
+        exit 1
+    fi
+    echo "✓ Download complete"
+fi
+
+# Verify download
+if [ ! -f "freetds-${FREETDS_VERSION}.tar.gz" ]; then
+    echo "Error: FreeTDS archive not found after download"
+    exit 1
 fi
 
 # Extract FreeTDS
 if [ ! -d "freetds-${FREETDS_VERSION}" ]; then
     echo "Extracting FreeTDS..."
-    tar -xzf "freetds-${FREETDS_VERSION}.tar.gz"
+    if ! tar -xzf "freetds-${FREETDS_VERSION}.tar.gz"; then
+        echo "Error: Failed to extract FreeTDS archive"
+        exit 1
+    fi
+    echo "✓ Extraction complete"
 fi
 
 cd "freetds-${FREETDS_VERSION}"
@@ -107,7 +123,8 @@ for ABI in "${ABIS[@]}"; do
     cd "$BUILD_DIR/freetds-${FREETDS_VERSION}"
     
     # Configure
-    ./configure \
+    echo "Configuring FreeTDS for $ABI..."
+    if ! ./configure \
         --host=$TARGET \
         --prefix="$BUILD_ABI_DIR" \
         --enable-shared \
@@ -119,30 +136,65 @@ for ABI in "${ABIS[@]}"; do
         --disable-pool \
         --disable-debug \
         CFLAGS="-O2 -fPIC" \
-        LDFLAGS="-L$TOOLCHAIN/sysroot/usr/lib/$TARGET/$API_LEVEL"
+        LDFLAGS="-L$TOOLCHAIN/sysroot/usr/lib/$TARGET/$API_LEVEL"; then
+        echo "Error: Configure failed for $ABI"
+        exit 1
+    fi
     
     # Build
-    make clean
-    make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
-    make install
+    echo "Building FreeTDS for $ABI..."
+    make clean || true
+    if ! make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2); then
+        echo "Error: Build failed for $ABI"
+        exit 1
+    fi
+    
+    if ! make install; then
+        echo "Error: Install failed for $ABI"
+        exit 1
+    fi
     
     # Copy libraries and headers to jniLibs
     JNILIBS_DIR="$INSTALL_DIR/$ABI"
     mkdir -p "$JNILIBS_DIR"
-    cp "$BUILD_ABI_DIR/lib/libsybdb.so"* "$JNILIBS_DIR/"
+    
+    # Copy libraries
+    if [ ! -f "$BUILD_ABI_DIR/lib/libsybdb.so" ] && [ ! -f "$BUILD_ABI_DIR/lib/libsybdb.so.5" ]; then
+        echo "Error: Library not found for $ABI after build"
+        exit 1
+    fi
+    cp "$BUILD_ABI_DIR/lib/libsybdb.so"* "$JNILIBS_DIR/" 2>/dev/null || {
+        echo "Error: Failed to copy libraries for $ABI"
+        exit 1
+    }
     
     # Rename to canonical name
     if [ -f "$JNILIBS_DIR/libsybdb.so.5" ]; then
         cp "$JNILIBS_DIR/libsybdb.so.5" "$JNILIBS_DIR/libsybdb.so"
     fi
     
+    # Verify library exists
+    if [ ! -f "$JNILIBS_DIR/libsybdb.so" ]; then
+        echo "Error: libsybdb.so not found for $ABI after copy"
+        exit 1
+    fi
+    
     # Copy headers to include directory
     INCLUDE_DIR="$JNILIBS_DIR/include"
     mkdir -p "$INCLUDE_DIR"
-    cp -r "$BUILD_ABI_DIR/include"/* "$INCLUDE_DIR/" 2>/dev/null || true
+    if [ -d "$BUILD_ABI_DIR/include" ]; then
+        cp -r "$BUILD_ABI_DIR/include"/* "$INCLUDE_DIR/" 2>/dev/null || true
+    fi
     # Also try copying from source if install didn't work
     if [ ! -f "$INCLUDE_DIR/sybdb.h" ]; then
-        cp -r "$BUILD_DIR/freetds-${FREETDS_VERSION}/include"/* "$INCLUDE_DIR/" 2>/dev/null || true
+        if [ -d "$BUILD_DIR/freetds-${FREETDS_VERSION}/include" ]; then
+            cp -r "$BUILD_DIR/freetds-${FREETDS_VERSION}/include"/* "$INCLUDE_DIR/" 2>/dev/null || true
+        fi
+    fi
+    
+    # Verify headers
+    if [ ! -f "$INCLUDE_DIR/sybdb.h" ]; then
+        echo "Warning: sybdb.h not found for $ABI, but continuing..."
     fi
     
     echo "✓ Built and installed for $ABI"
