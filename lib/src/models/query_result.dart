@@ -83,3 +83,4 @@ class QueryResult {
     return 'QueryResult(columns: $columns, rowCount: $rowCount, affected: $affectedRows)';
   }
 }
+
