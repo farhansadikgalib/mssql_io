@@ -78,3 +78,4 @@ class ConnectionConfig {
         'username: $username, timeout: ${timeoutInSeconds}s, tls: $enableTls)';
   }
 }
+
